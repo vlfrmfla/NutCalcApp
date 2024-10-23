@@ -1,4 +1,5 @@
 // 파일 예: app/display/page.js
+// 데이터 이동해서 쓸 수 있도록 수정
 
 import dynamic from 'next/dynamic';
 
