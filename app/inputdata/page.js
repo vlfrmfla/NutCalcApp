@@ -1,40 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TextField, Grid, IconButton } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'; 
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'; 
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import EditIcon from '@mui/icons-material/Edit'; // 수정 아이콘
 import DeleteIcon from '@mui/icons-material/Delete'; // 삭제 아이콘
+import { DataContext } from "../context/DataContext";
 
 import "./styles/inputdata.css"; // CSS 파일 임포트
 
-const initialData = [
-  {
-    id: 1,
-    analysis: "원수",
-    date: new Date(),
-    EC: 2.6,
-    pH: 5.5,
-    NH4: 1.2,
-    NO3: 13.75,
-    PO4: 1.5,
-    K: 9.5,
-    Ca: 5.4,
-    Mg: 2.4,
-    SO4: 4.4,
-    Cl: 2.25,
-    Na: 0,
-    HCO3: 0,
-    Fe: 15,
-    Mn: 10,
-    B: 30,
-    Zn: 5,
-    Cu: 0.75,
-    Mo: 0.5,
-  },
-];
 
 // 메타데이터 폼 컴포넌트
 function MetaDataForm({ newEntry, handleMetaChange, handleDateChange }) {
@@ -127,7 +103,7 @@ function MicroCompositionDataForm({ newEntry, handleChange }) {
 
 
 export default function InputData() {
-  const [data, setData] = useState(initialData);
+  const { data, addData, deleteData } = useContext(DataContext); // 전역 데이터 사용
   const [newEntry, setNewEntry] = useState({
     id: null,
     analysis: "",
@@ -288,7 +264,7 @@ export default function InputData() {
               {data.map((entry) => (
                 <TableRow key={entry.id}>
                   <TableCell>{entry.analysis}</TableCell>
-                  <TableCell>{entry.date ? new Date(entry.date).toLocaleDateString() : ""}</TableCell>
+                  <TableCell>{entry.date ? new Date(entry.date).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }) : ""}</TableCell>
                   <TableCell align="right">{entry.EC}</TableCell>
                   <TableCell align="right">{entry.pH}</TableCell>
                   <TableCell align="right">{entry.NH4}</TableCell>

@@ -1,0 +1,21 @@
+/* calculate.css */
+
+/* 공통 InputLabel 스타일 */
+.custom-input-label {
+  background-color: white;
+  padding-left: 8px;
+  padding-right: 8px;
+  transform: translate(14px, -10px) scale(0.75);
+}
+
+.custom-input-label.shrink {
+  background-color: white;
+  padding-left: 8px;
+  padding-right: 8px;
+  transform: translate(14px, -10px) scale(0.75);
+}
+
+.custom-input-label:not(.shrink) {
+  background-color: transparent;
+  transform: translate(8px, 16px);
+}
