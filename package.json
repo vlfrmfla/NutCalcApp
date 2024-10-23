@@ -1,0 +1,22 @@
+{
+  "name": "nut-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^6.1.4",
+    "@mui/material": "^6.1.4",
+    "@mui/x-date-pickers": "^7.21.0",
+    "date-fns": "^2.29.3",
+    "next": "14.2.15",
+    "react": "^18",
+    "react-dom": "^18"
+  }
+}

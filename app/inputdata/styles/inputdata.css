@@ -1,0 +1,20 @@
+/* 메타데이터와 조성 데이터 간의 간격 */
+.metadata-container {
+  margin-bottom: 10px;
+}
+
+.composition-container {
+  margin-bottom: 20px;
+}
+
+/* 데이터 추가 버튼 간격 */
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+/* 테이블 간격 */
+.table-container {
+  margin-top: 50px;
+}
