@@ -11,7 +11,6 @@ import { DataContext } from "../context/DataContext";
 
 import "./styles/inputdata.css"; // CSS 파일 임포트
 
-
 // 메타데이터 폼 컴포넌트
 function MetaDataForm({ newEntry, handleMetaChange, handleDateChange }) {
   return (
@@ -56,9 +55,9 @@ function MacroCompositionDataForm({ newEntry, handleChange }) {
   ];
 
   return (
-    <Grid container spacing={0.3} alignItems="center">
+    <Grid container spacing={0.05} alignItems="center">
       {compositionFields.map((field) => (
-        <Grid item xs={0.66} key={field.name}>
+        <Grid item xs={0.8} key={field.name}>
           <TextField
             label={field.label}
             name={field.name}
@@ -84,9 +83,9 @@ function MicroCompositionDataForm({ newEntry, handleChange }) {
   ];
 
   return (
-    <Grid container spacing={0.3} alignItems="center">
+    <Grid container spacing={0.05} alignItems="center">
       {compositionFields.map((field) => (
-        <Grid item xs={0.66} key={field.name}>
+        <Grid item xs={0.8} key={field.name}>
           <TextField
             label={field.label}
             name={field.name}
@@ -154,10 +153,13 @@ export default function InputData() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (editMode) {
-      setData(data.map((item) => (item.id === newEntry.id ? newEntry : item)));
+      // 수정 모드에서는 deleteData를 호출 후 새로운 데이터를 추가하는 방식으로 처리
+      deleteData(newEntry.id);
+      addData(newEntry); // 수정된 데이터를 추가
       setEditMode(false);
     } else {
-      setData([...data, { ...newEntry, id: Date.now() }]);
+      // 새 데이터를 추가할 때 addData를 사용합니다.
+      addData({ ...newEntry, id: Date.now() });
     }
     setNewEntry({
       id: null,
@@ -186,7 +188,7 @@ export default function InputData() {
 
   // 데이터 삭제 핸들러
   const handleDelete = (id) => {
-    setData(data.filter((item) => item.id !== id));
+    deleteData(id);
   };
 
   // 데이터 수정 핸들러

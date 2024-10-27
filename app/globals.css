@@ -52,11 +52,16 @@ html, body {
   color: #000; /* 마우스 호버 시 글자 색상 변경 */
 }
 
+.page-content {
+  padding-bottom: 60px; /* 푸터 높이만큼 하단에 여백 추가 */
+}
+
 .content {
   flex-grow: 1;
   padding: 20px;
   overflow-y: auto;
   transition: opacity 0.3s ease-in-out;
+  padding-bottom: 150px;
 }
 
 .content-enter {
@@ -74,3 +79,4 @@ html, body {
 .content-exit-active {
   opacity: 0;
 }
+

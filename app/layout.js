@@ -1,9 +1,8 @@
 "use client";
 import localFont from "next/font/local";
 import "./globals.css";
-import Footer from './components/footer';
+import Footer from './components/Footer';
 import Link from "next/link";
-import { useState } from "react";
 import { DataProvider } from "./context/DataContext"; // DataProvider 가져오기
 
 const geistSans = localFont({
@@ -31,7 +30,9 @@ export default function RootLayout({ children }) {
                 </ul>
               </nav>
             </aside>
-            <main className="content">{children}</main>
+            <main className="content">
+              {children}
+            </main>
             
             {/* 푸터 추가 */}
             <Footer />
