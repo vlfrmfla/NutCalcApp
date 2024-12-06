@@ -30,7 +30,13 @@ function MetaDataForm({ newEntry, handleMetaChange, handleDateChange }) {
           label="샘플 날짜"
           value={newEntry.date}
           onChange={handleDateChange}
-          renderInput={(params) => <TextField {...params} fullWidth required />}
+          slots={{ textField: TextField }} // TextField를 커스터마이징
+          slotProps={{
+            textField: {
+              fullWidth: true,
+              required: true,
+            },
+          }}
         />
       </Grid>
     </Grid>
