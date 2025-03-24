@@ -109,6 +109,7 @@ export function calculateFertilizers(reqIon, type = "4수염", FeType = "Fe-DTPA
     ions: {},
     gramsPerLiter: {},
     kgPerStock: {},
+    microFertgPerStock: {}, 
   };
 
   const abs = Math.abs;
