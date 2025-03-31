@@ -41,6 +41,60 @@ export default function Calculate() {
   const [fertilizerType, setFertilizerType] = useState("4수염");
   const [FefertilizerType, setFeFertilizerType] = useState("Fe-DTPA");
   const [concentration, setConcentration] = useState(100);
+  const aTankKeys = [
+    "KNO3_A", // ✅ 추가된 KNO3 분할 항목
+    fertilizerType === "4수염" ? "CaNO3_4H2O" : "CaNO3_10H2O",
+    "NH4NO3",
+    "HNO3",
+    FefertilizerType === "Fe-EDTA" ? "Fe_EDTA" : "Fe_DTPA",
+  ];
+  const bTankKeys = [
+    "KNO3_B",
+    "KH2PO4",
+    "MgSO4",
+    "K2SO4",
+    "MnSO4",
+    "ZnSO4",
+    "Borax",
+    "CuSO4",
+    "NaMoO4",
+  ];
+  const getFertValue = (key) => {
+    const kg = fertilizerResult?.kgPerStock?.[key];
+    const g = fertilizerResult?.microFertgPerStock?.[key];
+    const value =
+      kg !== undefined ? kg : g !== undefined ? g / 1000 : undefined;
+    return value && value > 0 ? value : null; // ✅ 0 이하 값은 무시
+  };
+
+  const fertilizerLabels = {
+    HNO3: { label: "질산", unit: "kg" },
+    NH4NO3: { label: "질산암모늄", unit: "kg" },
+    CaNO3_4H2O: { label: "질산칼슘 (4수염)", unit: "kg" },
+    CaNO3_10H2O: { label: "질산칼슘 (10수염)", unit: "kg" },
+    KH2PO4: { label: "인산칼륨", unit: "kg" },
+    MgSO4: { label: "황산마그네슘", unit: "kg" },
+    K2SO4: { label: "황산칼륨", unit: "kg" },
+    KNO3_A: { label: "질산칼륨 (A)", unit: "kg" },
+    KNO3_B: { label: "질산칼륨 (B)", unit: "kg" },
+    Fe_DTPA: { label: "철 (DTPA)", unit: "g" },
+    Fe_EDTA: { label: "철 (EDTA)", unit: "g" },
+    MnSO4: { label: "황산망간", unit: "g" },
+    ZnSO4: { label: "황산아연", unit: "g" },
+    Borax: { label: "붕사", unit: "g" },
+    CuSO4: { label: "황산구리", unit: "g" },
+    NaMoO4: { label: "몰리브덴산나트륨", unit: "g" },
+  };
+
+  const microFertKeys = [
+    "Fe_DTPA",
+    "Fe_EDTA",
+    "MnSO4",
+    "ZnSO4",
+    "Borax",
+    "CuSO4",
+    "NaMoO4",
+  ];
 
   // ✅ 조성 데이터 가져오기
   useEffect(() => {
@@ -91,6 +145,7 @@ export default function Calculate() {
           waterSource: selectedWaterSource,
           drainSource: selectedDrainSource,
           fertilizerType,
+          FeType: FefertilizerType,
           concentration,
           tankVolume,
         }),
@@ -109,6 +164,7 @@ export default function Calculate() {
         gramsPerLiter: data.gramsPerLiter,
         fertilizers: data.fertilizers,
         kgPerStock: data.kgPerStock,
+        microFertgPerStock: data.microFertgPerStock,
       });
     } catch (err) {
       console.error(err);
@@ -312,7 +368,12 @@ export default function Calculate() {
           variant="contained"
           color="primary"
           onClick={handleCalculate}
-          disabled={loading}
+          disabled={
+            loading ||
+            !selectedCrop ||
+            !selectedSubstrate ||
+            !selectedComposition
+          }
         >
           {loading ? "계산 중..." : "계산하기"}
         </Button>
@@ -333,22 +394,45 @@ export default function Calculate() {
                       비료
                     </TableCell>
                     <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                      필요량 (kg)
+                      필요량 (
+                      <span
+                        dangerouslySetInnerHTML={{
+                          __html: "kg 또는 g",
+                        }}
+                      />
+                      )
                     </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {["HNO3", "CaNO3", "NH4NO3", "Fe_DTPA"].map(
-                    (key) =>
-                      fertilizerResult.kgPerStock[key] !== undefined && (
+                  {aTankKeys.map((key) => {
+                    const value =
+                      fertilizerResult.kgPerStock?.[key] ??
+                      fertilizerResult.microFertgPerStock?.[key];
+
+                    const isMicro = microFertKeys.includes(key);
+
+                    return (
+                      value !== undefined && (
                         <TableRow key={key}>
-                          <TableCell align="center">{key}</TableCell>
+                          <TableCell
+                            align="center"
+                            sx={{
+                              backgroundColor: isMicro ? "#f3e5f5" : "inherit",
+                            }}
+                          >
+                            {key}
+                          </TableCell>
                           <TableCell align="center">
-                            {fertilizerResult.kgPerStock[key].toFixed(2)}
+                            {value.toFixed(2)}{" "}
+                            {fertilizerResult.kgPerStock?.[key] !== undefined
+                              ? "kg"
+                              : "g"}
                           </TableCell>
                         </TableRow>
                       )
-                  )}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -367,32 +451,45 @@ export default function Calculate() {
                       비료
                     </TableCell>
                     <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                      필요량 (kg)
+                      필요량 (
+                      <span
+                        dangerouslySetInnerHTML={{
+                          __html: "kg 또는 g",
+                        }}
+                      />
+                      )
                     </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {[
-                    "KH2PO4",
-                    "MgSO4",
-                    "K2SO4",
-                    "KNO3",
-                    "MnSO4",
-                    "Borax",
-                    "ZnSO4",
-                    "CuSO4",
-                    "NaMoO4",
-                  ].map(
-                    (key) =>
-                      fertilizerResult.kgPerStock[key] !== undefined && (
+                  {bTankKeys.map((key) => {
+                    const value =
+                      fertilizerResult.kgPerStock?.[key] ??
+                      fertilizerResult.microFertgPerStock?.[key];
+
+                    const isMicro = microFertKeys.includes(key);
+
+                    return (
+                      value !== undefined && (
                         <TableRow key={key}>
-                          <TableCell align="center">{key}</TableCell>
+                          <TableCell
+                            align="center"
+                            sx={{
+                              backgroundColor: isMicro ? "#f3e5f5" : "inherit",
+                            }}
+                          >
+                            {key}
+                          </TableCell>
                           <TableCell align="center">
-                            {fertilizerResult.kgPerStock[key].toFixed(2)}
+                            {value.toFixed(2)}{" "}
+                            {fertilizerResult.kgPerStock?.[key] !== undefined
+                              ? "kg"
+                              : "g"}
                           </TableCell>
                         </TableRow>
                       )
-                  )}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>

@@ -3,9 +3,11 @@ import fs from "fs/promises";
 import path from "path";
 import { Solution, Adjustment, calculateFertilizers } from "@/utils/calculation";
 
+
 export async function POST(req) {
   try {
     const body = await req.json();
+    console.log(body);
     const { crop, substrate, composition, waterSource, drainSource, fertilizerType, FeFertilizerType, concentration, tankVolume } = body;
 
     if (!crop || !substrate || !composition) {
@@ -44,6 +46,7 @@ export async function POST(req) {
       fertilizers: fertilizerResult.fertilizers,
       gramsPerLiter: fertilizerResult.gramsPerLiter,
       kgPerStock: fertilizerResult.kgPerStock,
+      microFertgPerStock: fertilizerResult.microFertgPerStock,
       ions: fertilizerResult.ions,
     });
 

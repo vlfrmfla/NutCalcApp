@@ -10,6 +10,7 @@ const fertilizerParams = {
   K2SO4: { molarmass: 174.3 },
   KNO3: { molarmass: 101.1 },
   Fe_DTPA: { molarmass: 932 },
+  Fe_EDTA: { molarmass: 446.17 },
   MnSO4: { molarmass: 169 },
   ZnSO4: { molarmass: 287.5 },
   Borax: { molarmass: 95.3 },
@@ -102,25 +103,32 @@ export class Adjustment {
     return result;
   }
 }
-export function calculateFertilizers(reqIon, type = "4수염", FeType = "Fe-DTPA", options = {}) {
+export function calculateFertilizers(
+  reqIon,
+  type = "4수염",
+  FeType = "Fe-DTPA",
+  options = {}
+) {
   const { tankVolume = 100, concentration = 100 } = options;
+
   const result = {
     fertilizers: {},
     ions: {},
     gramsPerLiter: {},
     kgPerStock: {},
-    microFertgPerStock: {}, 
+    microFertgPerStock: {},
   };
 
   const abs = Math.abs;
   let fert = {};
 
+  // ✅ 주요 비료 계산
   if (type === "4수염") {
     const K2SO4_SO4 = reqIon.SO4 - reqIon.Mg;
     const caFertKey = "CaNO3_4H2O";
     fert = {
       HNO3: abs(reqIon.HCO3),
-      [caFertKey]: reqIon.Ca,  // ✅ key를 동적으로 설정
+      [caFertKey]: reqIon.Ca,
       NH4NO3: reqIon.NH4,
       KH2PO4: reqIon.PO4,
       MgSO4: reqIon.Mg,
@@ -166,22 +174,17 @@ export function calculateFertilizers(reqIon, type = "4수염", FeType = "Fe-DTPA
     };
   }
 
+  // ✅ 미량원소 처리
   const traceElements = ["Fe", "Mn", "B", "Zn", "Cu", "Mo"];
   for (const el of traceElements) {
-    if (reqIon[el] !== undefined) {
-      result.ions[el] = reqIon[el];
-    }
-  }
-
-  if (reqIon.Fe) {
-    const feKey = FeType === "Fe-EDTA" ? "Fe_EDTA" : "Fe_DTPA";
-    fert[feKey] = reqIon.Fe;
+    const umol = reqIon[el];
+    if (!umol) continue;
   }
 
   result.fertilizers = fert;
   result.kgPerStock = {};
 
-  // kg/stock calc
+  // ✅ macro 비료 kg 계산
   for (const [key, mol] of Object.entries(fert)) {
     const param = fertilizerParams[key];
     if (param?.molarmass) {
@@ -193,12 +196,10 @@ export function calculateFertilizers(reqIon, type = "4수염", FeType = "Fe-DTPA
     }
   }
 
-  // trace element fertilizers g/stock 계산
+  // ✅ 미량원소 g 계산
   for (const el of traceElements) {
-    const mmol = reqIon[el];
+    const umol = reqIon[el];
     let fertKey;
-
-    // 원소에 대응하는 비료 키 매핑
     switch (el) {
       case "Fe":
         fertKey = FeType === "Fe-EDTA" ? "Fe_EDTA" : "Fe_DTPA";
@@ -222,14 +223,61 @@ export function calculateFertilizers(reqIon, type = "4수염", FeType = "Fe-DTPA
         fertKey = null;
     }
 
-    if (fertKey && fertilizerParams[fertKey]?.molarmass) {
-      const mass =
-        ((mmol * fertilizerParams[fertKey].molarmass) / 1000) *
-        tankVolume *
-        concentration;
-      result.microFertgPerStock[fertKey] = mass;
+    const param = fertilizerParams[fertKey];
+    if (param?.molarmass) {
+      const mol = umol * 1e-6;
+      const g = mol * param.molarmass * tankVolume * concentration;
+      result.microFertgPerStock[fertKey] = g;
     }
   }
+
+  // ✅ A/B Tank 균형 조정
+  const aTankKeys = [
+    "HNO3",
+    type === "4수염" ? "CaNO3_4H2O" : "CaNO3_10H2O",
+    "NH4NO3",
+    FeType === "Fe-EDTA" ? "Fe_EDTA" : "Fe_DTPA",
+    "KNO3_A",
+  ];
+  const bTankKeys = [
+    "KNO3",
+    "KNO3_B",
+    "KH2PO4",
+    "MgSO4",
+    "K2SO4",
+    "MnSO4",
+    "ZnSO4",
+    "Borax",
+    "CuSO4",
+    "NaMoO4",
+  ];
+
+  let A_mass = 0;
+  let B_mass = 0;
+
+  for (const key of aTankKeys) {
+    const kg = result.kgPerStock[key];
+    const g = result.microFertgPerStock[key];
+    A_mass += kg !== undefined ? kg : g !== undefined ? g / 1000 : 0;
+  }
+
+  for (const key of bTankKeys) {
+    const kg = result.kgPerStock[key];
+    const g = result.microFertgPerStock[key];
+    B_mass += kg !== undefined ? kg : g !== undefined ? g / 1000 : 0;
+  }
+
+  const totalKNO3 = result.kgPerStock["KNO3"] || 0;
+  const shiftAmount = Math.max(0, Math.min(totalKNO3, (B_mass - A_mass) / 2));
+  
+  result.kgPerStock["KNO3_A"] = shiftAmount;
+  result.kgPerStock["KNO3_B"] = totalKNO3 - shiftAmount;
+  delete result.kgPerStock["KNO3"];
+  
+  console.log("👉 A_mass:", A_mass.toFixed(2), "kg");
+  console.log("👉 B_mass:", B_mass.toFixed(2), "kg");
+  console.log("👉 totalKNO3:", totalKNO3.toFixed(2), "kg");
+  console.log("👉 shiftAmount:", shiftAmount.toFixed(2), "kg");
 
   return result;
 }
