@@ -109,7 +109,7 @@ export function calculateFertilizers(
   FeType = "Fe-DTPA",
   options = {}
 ) {
-  const { tankVolume = 100, concentration = 100 } = options;
+  const { tankVolume = 1000, concentration = 100 } = options;
 
   const result = {
     fertilizers: {},
@@ -241,7 +241,6 @@ export function calculateFertilizers(
   ];
   const bTankKeys = [
     "KNO3",
-    "KNO3_B",
     "KH2PO4",
     "MgSO4",
     "K2SO4",

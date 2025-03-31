@@ -42,7 +42,7 @@ export function DataProvider({ children }) {
   const [selectedDrainSource, setSelectedDrainSource] = useState("");
 
   // ✅ 양액탱크 용량 (L)
-  const [tankVolume, setTankVolume] = useState(100);
+  const [tankVolume, setTankVolume] = useState(1000);
 
   // 데이터 추가 함수
   const addData = (newEntry) => {
