@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useContext } from "react";
-import { DataContext } from "../context/DataContext";
+import { useState, useEffect } from "react";
 import {
   Grid,
   Typography,
@@ -24,6 +23,7 @@ import {
 } from "@mui/material";
 import { Solution, Adjustment } from "@/utils/calculation";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { useSession } from "next-auth/react";
 
 const nutrientDataPath = "/nutrient_solution.json";
 
@@ -42,21 +42,32 @@ const CustomTooltip = styled(({ className, ...props }) => (
 }));
 
 export default function SelectPage() {
-  const {
-    data,
-    selectedCrop, setSelectedCrop,
-    selectedSubstrate, setSelectedSubstrate,
-    selectedComposition, setSelectedComposition,
-    selectedWaterSource, setSelectedWaterSource,
-    selectedDrainSource, setSelectedDrainSource,
-  } = useContext(DataContext);
-
+  const { data: session } = useSession();
+  const [data, setData] = useState([]); // 샘플 데이터 (원수/배액)
   const [nutrientData, setNutrientData] = useState(null);
+  const [selectedCrop, setSelectedCrop] = useState("");
+  const [selectedSubstrate, setSelectedSubstrate] = useState("");
+  const [selectedComposition, setSelectedComposition] = useState("");
+  const [selectedWaterSource, setSelectedWaterSource] = useState("");
+  const [selectedDrainSource, setSelectedDrainSource] = useState("");
   const [compositionDetails, setCompositionDetails] = useState(null);
   const [waterSourceDetails, setWaterSourceDetails] = useState(null);
   const [drainSourceDetails, setDrainSourceDetails] = useState(null);
   const [targetIons, setTargetIons] = useState(null);
   const [recirculationMode, setRecirculationMode] = useState("비순환식");
+
+  // 샘플 데이터(API) 불러오기
+  const fetchSamples = async () => {
+    const res = await fetch("/api/samples");
+    if (res.ok) {
+      const rows = await res.json();
+      setData(rows);
+    }
+  };
+
+  useEffect(() => {
+    fetchSamples();
+  }, []);
 
   useEffect(() => {
     fetch(nutrientDataPath)
@@ -118,195 +129,196 @@ export default function SelectPage() {
   };
 
   return (
-    <Grid container spacing={2} sx={{ p: 2 }}>
-      <Grid item xs={12}>
-        <Typography variant="h5" sx={{ fontWeight: "bold", color: "grey" }}>
-          양액 조성 선택
-        </Typography>
-      </Grid>
-
-      <Grid item xs={12}>
-        <ToggleButtonGroup
-          value={recirculationMode}
-          exclusive
-          onChange={handleRecirculationModeChange}
-        >
-          <ToggleButton value="비순환식">비순환식</ToggleButton>
-          <ToggleButton value="순환식">순환식</ToggleButton>
-        </ToggleButtonGroup>
-        <CustomTooltip
-          title={
-            <>
-              <strong>비순환식:</strong> 배액을 배출하는 방식입니다.{"\n"}
-              <strong>순환식:</strong> 배액을 재활용하는 방식입니다.
-            </>
-          }
-          arrow
-        >
-          <IconButton sx={{ ml: 2 }}>
-            <InfoOutlinedIcon color="primary" />
-          </IconButton>
-        </CustomTooltip>
-      </Grid>
-
-      {/* 작물 선택 */}
-      <Grid item xs={4}>
-        <FormControl fullWidth>
-          <InputLabel id="crop-label">작물 선택</InputLabel>
-          <Select
-            labelId="crop-label"
-            value={selectedCrop}
-            onChange={(e) => {
-              setSelectedCrop(e.target.value);
-              setSelectedSubstrate("");
-              setSelectedComposition("");
-              setCompositionDetails(null);
-            }}
-            label="작물 선택"
-          >
-            <MenuItem value=""><em>작물을 선택하세요</em></MenuItem>
-            {nutrientData &&
-              Object.keys(nutrientData).map((crop) => (
-                <MenuItem key={crop} value={crop}>{crop}</MenuItem>
-              ))}
-          </Select>
-        </FormControl>
-      </Grid>
-
-      {/* 배지 선택 */}
-      <Grid item xs={4}>
-        <FormControl fullWidth>
-          <InputLabel id="substrate-label">배지 선택</InputLabel>
-          <Select
-            labelId="substrate-label"
-            value={selectedSubstrate}
-            onChange={(e) => {
-              setSelectedSubstrate(e.target.value);
-              setSelectedComposition("");
-              setCompositionDetails(null);
-            }}
-            disabled={!selectedCrop}
-            label="배지 선택"
-          >
-            <MenuItem value=""><em>배지를 선택하세요</em></MenuItem>
-            {nutrientData && selectedCrop &&
-              Object.keys(nutrientData[selectedCrop]).map((substrate) => (
-                <MenuItem key={substrate} value={substrate}>{substrate}</MenuItem>
-              ))}
-          </Select>
-        </FormControl>
-      </Grid>
-
-      {/* 조성 선택 */}
-      <Grid item xs={4}>
-        <FormControl fullWidth>
-          <InputLabel id="composition-label">표준 양액 조성</InputLabel>
-          <Select
-            labelId="composition-label"
-            value={selectedComposition}
-            onChange={(e) => setSelectedComposition(e.target.value)}
-            disabled={!selectedSubstrate}
-            label="표준 양액 조성"
-          >
-            <MenuItem value=""><em>조성을 선택하세요</em></MenuItem>
-            {nutrientData && selectedCrop && selectedSubstrate &&
-              Object.keys(nutrientData[selectedCrop][selectedSubstrate]).map((comp) => (
-                <MenuItem key={comp} value={comp}>{comp}</MenuItem>
-              ))}
-          </Select>
-        </FormControl>
-      </Grid>
-
-      {/* 원수 / 배액 */}
-      {compositionDetails && (
-        <>
-          <Grid item xs={4}>
-            <FormControl fullWidth>
-              <InputLabel id="water-label">원수 조성</InputLabel>
-              <Select
-                labelId="water-label"
-                value={selectedWaterSource}
-                onChange={(e) => setSelectedWaterSource(e.target.value)}
-                label="원수 조성"
-              >
-                <MenuItem value=""><em>선택</em></MenuItem>
-                {data?.map((entry) => (
-                  <MenuItem key={entry.id} value={entry.analysis}>{entry.analysis}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={4}>
-            <FormControl fullWidth disabled={recirculationMode === "비순환식"}>
-              <InputLabel id="drain-label">배액 조성</InputLabel>
-              <Select
-                labelId="drain-label"
-                value={selectedDrainSource}
-                onChange={(e) => setSelectedDrainSource(e.target.value)}
-                label="배액 조성"
-              >
-                <MenuItem value=""><em>선택</em></MenuItem>
-                {data?.map((entry) => (
-                  <MenuItem key={entry.id} value={entry.analysis}>{entry.analysis}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-        </>
-      )}
-
-      {/* 조성 테이블 */}
-      {compositionDetails && (
+    <div
+      style={{
+        opacity: session ? 1 : 0.3,
+        transition: "opacity 0.3s",
+        pointerEvents: session ? "auto" : "none",
+      }}
+    >
+      <Grid container spacing={2} sx={{ p: 2 }}>
         <Grid item xs={12}>
-          <TableContainer component={Paper} sx={{ mt: 2 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell align="center" sx={{ fontWeight: "bold" }}>구분</TableCell>
-                  {Object.keys(compositionDetails).map((key) => (
-                    <TableCell key={key} align="center" sx={{ fontWeight: "bold" }}>{key}</TableCell>
+          <Typography variant="h5" sx={{ fontWeight: "bold", color: "grey" }}>
+            양액 조성 선택
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <ToggleButtonGroup
+            value={recirculationMode}
+            exclusive
+            onChange={handleRecirculationModeChange}
+          >
+            <ToggleButton value="비순환식">비순환식</ToggleButton>
+            <ToggleButton value="순환식">순환식</ToggleButton>
+          </ToggleButtonGroup>
+          <CustomTooltip
+            title={
+              <>
+                <strong>비순환식:</strong> 배액을 배출하는 방식입니다.{"\n"}
+                <strong>순환식:</strong> 배액을 재활용하는 방식입니다.
+              </>
+            }
+            arrow
+          >
+            <IconButton sx={{ ml: 2 }}>
+              <InfoOutlinedIcon color="primary" />
+            </IconButton>
+          </CustomTooltip>
+        </Grid>
+        {/* 작물 선택 */}
+        <Grid item xs={4}>
+          <FormControl fullWidth>
+            <InputLabel id="crop-label">작물 선택</InputLabel>
+            <Select
+              labelId="crop-label"
+              value={selectedCrop}
+              onChange={(e) => {
+                setSelectedCrop(e.target.value);
+                setSelectedSubstrate("");
+                setSelectedComposition("");
+                setCompositionDetails(null);
+              }}
+              label="작물 선택"
+            >
+              <MenuItem value=""><em>작물을 선택하세요</em></MenuItem>
+              {nutrientData &&
+                Object.keys(nutrientData).map((crop) => (
+                  <MenuItem key={crop} value={crop}>{crop}</MenuItem>
+                ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        {/* 배지 선택 */}
+        <Grid item xs={4}>
+          <FormControl fullWidth>
+            <InputLabel id="substrate-label">배지 선택</InputLabel>
+            <Select
+              labelId="substrate-label"
+              value={selectedSubstrate}
+              onChange={(e) => {
+                setSelectedSubstrate(e.target.value);
+                setSelectedComposition("");
+                setCompositionDetails(null);
+              }}
+              disabled={!selectedCrop}
+              label="배지 선택"
+            >
+              <MenuItem value=""><em>배지를 선택하세요</em></MenuItem>
+              {nutrientData && selectedCrop &&
+                Object.keys(nutrientData[selectedCrop]).map((substrate) => (
+                  <MenuItem key={substrate} value={substrate}>{substrate}</MenuItem>
+                ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        {/* 조성 선택 */}
+        <Grid item xs={4}>
+          <FormControl fullWidth>
+            <InputLabel id="composition-label">표준 양액 조성</InputLabel>
+            <Select
+              labelId="composition-label"
+              value={selectedComposition}
+              onChange={(e) => setSelectedComposition(e.target.value)}
+              disabled={!selectedSubstrate}
+              label="표준 양액 조성"
+            >
+              <MenuItem value=""><em>조성을 선택하세요</em></MenuItem>
+              {nutrientData && selectedCrop && selectedSubstrate &&
+                Object.keys(nutrientData[selectedCrop][selectedSubstrate]).map((comp) => (
+                  <MenuItem key={comp} value={comp}>{comp}</MenuItem>
+                ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        {/* 원수 / 배액 */}
+        {compositionDetails && (
+          <>
+            <Grid item xs={4}>
+              <FormControl fullWidth>
+                <InputLabel id="water-label">원수 조성</InputLabel>
+                <Select
+                  labelId="water-label"
+                  value={selectedWaterSource}
+                  onChange={(e) => setSelectedWaterSource(e.target.value)}
+                  label="원수 조성"
+                >
+                  <MenuItem value=""><em>선택</em></MenuItem>
+                  {data?.map((entry) => (
+                    <MenuItem key={entry.id} value={entry.analysis}>{entry.analysis}</MenuItem>
                   ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                <TableRow>
-                  <TableCell align="center">표준 조성</TableCell>
-                  {Object.values(compositionDetails).map((val, i) => (
-                    <TableCell key={i} align="center">{val}</TableCell>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={4}>
+              <FormControl fullWidth disabled={recirculationMode === "비순환식"}>
+                <InputLabel id="drain-label">배액 조성</InputLabel>
+                <Select
+                  labelId="drain-label"
+                  value={selectedDrainSource}
+                  onChange={(e) => setSelectedDrainSource(e.target.value)}
+                  label="배액 조성"
+                >
+                  <MenuItem value=""><em>선택</em></MenuItem>
+                  {data?.map((entry) => (
+                    <MenuItem key={entry.id} value={entry.analysis}>{entry.analysis}</MenuItem>
                   ))}
-                </TableRow>
-                <TableRow>
-                  <TableCell align="center">원수 조성</TableCell>
-                  {Object.keys(compositionDetails).map((key, i) => (
-                    <TableCell key={i} align="center">
-                      {waterSourceDetails?.[key] ?? "-"}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                <TableRow>
-                  <TableCell align="center">배액 조성</TableCell>
-                  {Object.keys(compositionDetails).map((key, i) => (
-                    <TableCell key={i} align="center">
-                      {drainSourceDetails?.[key] ?? "-"}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                {targetIons && (
+                </Select>
+              </FormControl>
+            </Grid>
+          </>
+        )}
+        {/* 조성 테이블 */}
+        {compositionDetails && (
+          <Grid item xs={12}>
+            <TableContainer component={Paper} sx={{ mt: 2 }}>
+              <Table>
+                <TableHead>
                   <TableRow>
-                    <TableCell align="center">목표 조성</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: "bold" }}>구분</TableCell>
+                    {Object.keys(compositionDetails).map((key) => (
+                      <TableCell key={key} align="center" sx={{ fontWeight: "bold" }}>{key}</TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell align="center">표준 조성</TableCell>
+                    {Object.values(compositionDetails).map((val, i) => (
+                      <TableCell key={i} align="center">{val}</TableCell>
+                    ))}
+                  </TableRow>
+                  <TableRow>
+                    <TableCell align="center">원수 조성</TableCell>
                     {Object.keys(compositionDetails).map((key, i) => (
                       <TableCell key={i} align="center">
-                        {targetIons[key] !== undefined ? targetIons[key].toFixed(2) : "-"}
+                        {waterSourceDetails?.[key] ?? "-"}
                       </TableCell>
                     ))}
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Grid>
-      )}
-    </Grid>
+                  <TableRow>
+                    <TableCell align="center">배액 조성</TableCell>
+                    {Object.keys(compositionDetails).map((key, i) => (
+                      <TableCell key={i} align="center">
+                        {drainSourceDetails?.[key] ?? "-"}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {targetIons && (
+                    <TableRow>
+                      <TableCell align="center">목표 조성</TableCell>
+                      {Object.keys(compositionDetails).map((key, i) => (
+                        <TableCell key={i} align="center">
+                          {targetIons[key] !== undefined ? targetIons[key].toFixed(2) : "-"}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Grid>
+        )}
+      </Grid>
+    </div>
   );
 }

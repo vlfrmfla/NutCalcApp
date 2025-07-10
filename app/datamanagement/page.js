@@ -1,17 +1,14 @@
 "use client";
 
-import { useState, useContext } from "react";
+import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TextField, Grid, IconButton } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'; 
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'; 
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import EditIcon from '@mui/icons-material/Edit'; // 수정 아이콘
-import DeleteIcon from '@mui/icons-material/Delete'; // 삭제 아이콘
-import { DataContext } from "../context/DataContext";
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import "./styles/inputdata.css";
 
-import "./styles/inputdata.css"; // CSS 파일 임포트
-
-// 메타데이터 폼 컴포넌트
 function MetaDataForm({ newEntry, handleMetaChange, handleDateChange }) {
   return (
     <Grid container spacing={0.5} alignItems="center">
@@ -30,7 +27,7 @@ function MetaDataForm({ newEntry, handleMetaChange, handleDateChange }) {
           label="샘플 날짜"
           value={newEntry.date}
           onChange={handleDateChange}
-          slots={{ textField: TextField }} // TextField를 커스터마이징
+          slots={{ textField: TextField }}
           slotProps={{
             textField: {
               fullWidth: true,
@@ -43,7 +40,6 @@ function MetaDataForm({ newEntry, handleMetaChange, handleDateChange }) {
   );
 }
 
-// 양액 조성 데이터 폼 컴포넌트
 function MacroCompositionDataForm({ newEntry, handleChange }) {
   const compositionFields = [
     { label: <>EC</>, name: "EC", dataRequired: "required" },
@@ -106,9 +102,8 @@ function MicroCompositionDataForm({ newEntry, handleChange }) {
   );
 }
 
-
 export default function InputData() {
-  const { data, addData, deleteData } = useContext(DataContext); // 전역 데이터 사용
+  const [data, setData] = useState([]);
   const [newEntry, setNewEntry] = useState({
     id: null,
     analysis: "",
@@ -134,6 +129,28 @@ export default function InputData() {
   });
   const [editMode, setEditMode] = useState(false);
 
+  // 데이터 불러오기
+  const fetchData = async () => {
+    const res = await fetch("/api/samples");
+    if (res.ok) {
+      const rows = await res.json();
+      if (rows.length === 0) {
+        // 예시 데이터가 추가된 직후라면 한 번 더 fetch
+        const res2 = await fetch("/api/samples");
+        if (res2.ok) {
+          const rows2 = await res2.json();
+          setData(rows2);
+        }
+      } else {
+        setData(rows);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const handleMetaChange = (e) => {
     setNewEntry({
       ...newEntry,
@@ -156,16 +173,23 @@ export default function InputData() {
   };
 
   // 데이터 추가 및 수정 핸들러
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (editMode) {
-      // 수정 모드에서는 deleteData를 호출 후 새로운 데이터를 추가하는 방식으로 처리
-      deleteData(newEntry.id);
-      addData(newEntry); // 수정된 데이터를 추가
+      // 수정
+      await fetch("/api/samples", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newEntry),
+      });
       setEditMode(false);
     } else {
-      // 새 데이터를 추가할 때 addData를 사용합니다.
-      addData({ ...newEntry, id: Date.now() });
+      // 추가
+      await fetch("/api/samples", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newEntry),
+      });
     }
     setNewEntry({
       id: null,
@@ -190,11 +214,17 @@ export default function InputData() {
       Cu: "",
       Mo: "",
     });
+    fetchData();
   };
 
   // 데이터 삭제 핸들러
-  const handleDelete = (id) => {
-    deleteData(id);
+  const handleDelete = async (id) => {
+    await fetch("/api/samples", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    fetchData();
   };
 
   // 데이터 수정 핸들러
@@ -207,8 +237,6 @@ export default function InputData() {
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <div>
         <h2>양액 조성 입력 및 데이터 관리</h2>
-
-        {/* 메타데이터 입력 폼 */}
         <div style={{ marginBottom: '20px' }}>
           <MetaDataForm 
             newEntry={newEntry}
@@ -216,30 +244,23 @@ export default function InputData() {
             handleDateChange={handleDateChange}
           />
         </div>
-
-        {/* 양액 조성 데이터 입력 폼 */}
         <div style={{ marginBottom: '20px' }}>
           <MacroCompositionDataForm
             newEntry={newEntry}
             handleChange={handleChange}
           />
         </div>
-
         <div style={{ marginBottom: '20px' }}>
           <MicroCompositionDataForm
             newEntry={newEntry}
             handleChange={handleChange}
           />
         </div>        
-
-        {/* 데이터 추가/수정 버튼 */}
         <Grid item xs={12} style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
           <Button variant="contained" type="submit" color="primary" onClick={handleSubmit}>
             {editMode ? "수정 완료" : "데이터 추가"}
           </Button>
         </Grid>
-
-        {/* 데이터 테이블 */}
         <TableContainer component={Paper} style={{ marginTop: '20px' }}>
           <Table>
             <TableHead>
