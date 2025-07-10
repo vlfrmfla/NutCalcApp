@@ -1,28 +1,47 @@
 "use client";
-import { signIn, useSession } from "next-auth/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/utils/supabaseClient";
 
 export default function LoginUI() {
-  const { status } = useSession();
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
-    if (status === "authenticated") {
-      window.location.reload();
-    }
-  }, [status]);
+    // 최초 세션 확인
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // 세션 변화 감지
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  if (session) {
+    // 로그인 상태면 로그인 UI를 숨김
+    return null;
+  }
+
+  const handleGoogleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
+    if (error) alert(error.message);
+  };
+
+  const handleKakaoLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({ provider: "kakao" });
+    if (error) alert(error.message);
+  };
 
   return (
     <div style={{
       position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100vw",
-      height: "100vh",
+      top: 0, left: 0, width: "100vw", height: "100vh",
       background: "rgba(255,255,255,0.7)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 9999
+      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999
     }}>
       <div style={{
         background: "rgba(255,255,255,0.95)",
@@ -40,25 +59,25 @@ export default function LoginUI() {
           소셜 계정으로 로그인하여<br />수경재배 양액 계산 서비스를 이용하세요.<br /><br />현재 세부 기능은 개발중인 단계입니다.
         </p>
         <button
-          onClick={() => signIn("naver", { callbackUrl: "/" })}
+          onClick={handleGoogleLogin}
           style={{
             padding: "14px 0",
             width: "100%",
             fontSize: 16,
-            background: "#03cf5d",
-            color: "#fff",
-            border: "none",
+            background: "#fff",
+            color: "#222",
+            border: "1px solid #ddd",
             borderRadius: 20,
             cursor: "pointer",
             fontWeight: 600,
             marginBottom: 8,
-            boxShadow: "0 2px 8px rgba(15, 175, 87, 0.08)"
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
           }}
         >
-          네이버로 로그인
+          구글로 로그인
         </button>
         <button
-          onClick={() => signIn("kakao", { callbackUrl: "/" })}
+          onClick={handleKakaoLogin}
           style={{
             padding: "14px 0",
             width: "100%",

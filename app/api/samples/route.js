@@ -1,98 +1,127 @@
-import db from '@/utils/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]/route';
+import { createClient } from '@supabase/supabase-js';
 
-const DEFAULT_SAMPLES = [
-  {
-    analysis: "원수(예시)",
-    date: new Date().toISOString(),
-    EC: 0.21,
-    pH: 7.76,
-    NH4: 0,
-    NO3: 0.57,
-    PO4: 0,
-    K: 0.12,
-    Ca: 0.29,
-    Mg: 0.40,
-    SO4: 0.35,
-    Cl: 0.46,
-    Na: 0,
-    HCO3: 0,
-    Fe: 0,
-    Mn: 0,
-    B: 0,
-    Zn: 0,
-    Cu: 0,
-    Mo: 0
-  }
-];
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY // ✅ 절대 클라이언트에 노출 X
+);
+
+const DEFAULT_SAMPLE = {
+  analysis: "원수(예시)",
+  date: new Date().toISOString(),
+  EC: 0.21,
+  pH: 7.76,
+  NH4: 0,
+  NO3: 0.57,
+  PO4: 0,
+  K: 0.12,
+  Ca: 0.29,
+  Mg: 0.40,
+  SO4: 0.35,
+  Cl: 0.46,
+  Na: 0,
+  HCO3: 0,
+  Fe: 0,
+  Mn: 0,
+  B: 0,
+  Zn: 0,
+  Cu: 0,
+  Mo: 0,
+};
+
+async function getUserIdFromRequest(req) {
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader?.startsWith('Bearer ')) return null;
+  const token = authHeader.split(' ')[1];
+
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) return null;
+  return user.id;
+}
 
 export async function GET(req) {
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.id || session?.user?.email;
+  const userId = await getUserIdFromRequest(req);
   if (!userId) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
-  let rows = db.prepare('SELECT * FROM samples WHERE userId = ?').all(userId);
-  if (rows.length === 0) {
-    // 기본 예시 데이터 자동 추가 (하나만)
-    const stmt = db.prepare(`INSERT INTO samples (
-      userId, analysis, date, EC, pH, NH4, NO3, PO4, K, Ca, Mg, SO4, Cl, Na, HCO3, Fe, Mn, B, Zn, Cu, Mo
-    ) VALUES (
-      @userId, @analysis, @date, @EC, @pH, @NH4, @NO3, @PO4, @K, @Ca, @Mg, @SO4, @Cl, @Na, @HCO3, @Fe, @Mn, @B, @Zn, @Cu, @Mo
-    )`);
-    for (const sample of DEFAULT_SAMPLES) {
-      stmt.run({ userId, ...sample });
-    }
-    rows = db.prepare('SELECT * FROM samples WHERE userId = ?').all(userId);
+
+  let { data: rows, error } = await supabase
+    .from('samples')
+    .select('*')
+    .eq('userId', userId);
+
+  if (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
+
+  if (!rows || rows.length === 0) {
+    await supabase.from('samples').insert([{ ...DEFAULT_SAMPLE, userId }]);
+    ({ data: rows, error } = await supabase
+      .from('samples')
+      .select('*')
+      .eq('userId', userId));
+  }
+
   return new Response(JSON.stringify(rows), { status: 200 });
 }
 
 export async function POST(req) {
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.id || session?.user?.email;
+  const userId = await getUserIdFromRequest(req);
   if (!userId) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
+
   const body = await req.json();
-  const stmt = db.prepare(`INSERT INTO samples (
-    userId, analysis, date, EC, pH, NH4, NO3, PO4, K, Ca, Mg, SO4, Cl, Na, HCO3, Fe, Mn, B, Zn, Cu, Mo
-  ) VALUES (
-    @userId, @analysis, @date, @EC, @pH, @NH4, @NO3, @PO4, @K, @Ca, @Mg, @SO4, @Cl, @Na, @HCO3, @Fe, @Mn, @B, @Zn, @Cu, @Mo
-  )`);
-  const info = stmt.run({ userId, ...body });
-  return new Response(JSON.stringify({ id: info.lastInsertRowid }), { status: 201 });
+  const { error } = await supabase
+    .from('samples')
+    .insert([{ ...body, userId }]);
+
+  if (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  }
+
+  return new Response(JSON.stringify({ message: 'Added successfully' }), { status: 200 });
 }
 
 export async function PUT(req) {
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.id || session?.user?.email;
+  const userId = await getUserIdFromRequest(req);
   if (!userId) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
+
   const body = await req.json();
-  if (!body.id) {
-    return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400 });
+  const { id, ...updates } = body;
+
+  const { error } = await supabase
+    .from('samples')
+    .update(updates)
+    .eq('id', id)
+    .eq('userId', userId);
+
+  if (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
-  const stmt = db.prepare(`UPDATE samples SET
-    analysis=@analysis, date=@date, EC=@EC, pH=@pH, NH4=@NH4, NO3=@NO3, PO4=@PO4, K=@K, Ca=@Ca, Mg=@Mg, SO4=@SO4, Cl=@Cl, Na=@Na, HCO3=@HCO3, Fe=@Fe, Mn=@Mn, B=@B, Zn=@Zn, Cu=@Cu, Mo=@Mo
-    WHERE id=@id AND userId=@userId`);
-  const info = stmt.run({ userId, ...body });
-  return new Response(JSON.stringify({ changes: info.changes }), { status: 200 });
+
+  return new Response(JSON.stringify({ message: 'Updated successfully' }), { status: 200 });
 }
 
 export async function DELETE(req) {
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.id || session?.user?.email;
+  const userId = await getUserIdFromRequest(req);
   if (!userId) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
-  const { id } = await req.json();
-  if (!id) {
-    return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400 });
+
+  const body = await req.json();
+  const { id } = body;
+
+  const { error } = await supabase
+    .from('samples')
+    .delete()
+    .eq('id', id)
+    .eq('userId', userId);
+
+  if (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
-  const stmt = db.prepare('DELETE FROM samples WHERE id = ? AND userId = ?');
-  const info = stmt.run(id, userId);
-  return new Response(JSON.stringify({ changes: info.changes }), { status: 200 });
-} 
+
+  return new Response(JSON.stringify({ message: 'Deleted successfully' }), { status: 200 });
+}

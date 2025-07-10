@@ -1,15 +1,7 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]/route";
 import LoginUI from "./components/LoginUI";
 
-export default async function Home() {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return <LoginUI />;
-  }
-
-  // 로그인된 경우: 메인 UI (네비게이션 바 포함)
+export default function Home() {
+  // NextAuth 세션 제거, Supabase Auth만 사용
   return (
     <div>
       <h1>양액 계산 앱</h1>

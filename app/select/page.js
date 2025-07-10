@@ -23,7 +23,7 @@ import {
 } from "@mui/material";
 import { Solution, Adjustment } from "@/utils/calculation";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { useSession } from "next-auth/react";
+import { supabase } from "@/utils/supabaseClient";
 
 const nutrientDataPath = "/nutrient_solution.json";
 
@@ -42,7 +42,7 @@ const CustomTooltip = styled(({ className, ...props }) => (
 }));
 
 export default function SelectPage() {
-  const { data: session } = useSession();
+  const [session, setSession] = useState(null);
   const [data, setData] = useState([]); // 샘플 데이터 (원수/배액)
   const [nutrientData, setNutrientData] = useState(null);
   const [selectedCrop, setSelectedCrop] = useState("");
@@ -58,15 +58,44 @@ export default function SelectPage() {
 
   // 샘플 데이터(API) 불러오기
   const fetchSamples = async () => {
-    const res = await fetch("/api/samples");
+    const { data } = await supabase.auth.getSession();
+    console.log("getSession 결과:", data);
+  
+    const session = data?.session;
+    const accessToken = session?.access_token;
+    console.log("보낼 JWT (Supabase Session JWT):", accessToken);
+  
+    const res = await fetch("/api/samples", {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    });
+  
     if (res.ok) {
       const rows = await res.json();
       setData(rows);
+    } else {
+      console.error("API 에러 상태 코드:", res.status);
     }
   };
+  
 
   useEffect(() => {
-    fetchSamples();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        fetchSamples();  // ✅ 세션 있으면 바로 fetchSamples 실행
+      }
+    });
+  
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        fetchSamples();  // ✅ 로그인/로그아웃 시에도 fetchSamples 실행
+      }
+    });
+  
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
