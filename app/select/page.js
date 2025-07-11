@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import {
   Grid,
   Typography,
@@ -24,6 +24,8 @@ import {
 import { Solution, Adjustment } from "@/utils/calculation";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { supabase } from "@/utils/supabaseClient";
+import { fetchWithAuth } from "@/utils/apiClient";
+import { DataContext } from "../context/DataContext";
 
 const nutrientDataPath = "/nutrient_solution.json";
 
@@ -42,52 +44,38 @@ const CustomTooltip = styled(({ className, ...props }) => (
 }));
 
 export default function SelectPage() {
-  const [session, setSession] = useState(null);
-  const [data, setData] = useState([]); // 샘플 데이터 (원수/배액)
-  const [nutrientData, setNutrientData] = useState(null);
-  const [selectedCrop, setSelectedCrop] = useState("");
-  const [selectedSubstrate, setSelectedSubstrate] = useState("");
-  const [selectedComposition, setSelectedComposition] = useState("");
-  const [selectedWaterSource, setSelectedWaterSource] = useState("");
-  const [selectedDrainSource, setSelectedDrainSource] = useState("");
+  const {
+    nutrientData,
+    selectedCrop, setSelectedCrop,
+    selectedSubstrate, setSelectedSubstrate,
+    selectedComposition, setSelectedComposition,
+    selectedWaterSource, setSelectedWaterSource,
+    selectedDrainSource, setSelectedDrainSource,
+    data, setData // DataContext에서 data와 setData를 가져옴
+  } = useContext(DataContext);
   const [compositionDetails, setCompositionDetails] = useState(null);
   const [waterSourceDetails, setWaterSourceDetails] = useState(null);
   const [drainSourceDetails, setDrainSourceDetails] = useState(null);
   const [targetIons, setTargetIons] = useState(null);
   const [recirculationMode, setRecirculationMode] = useState("비순환식");
 
-  // 샘플 데이터(API) 불러오기
   const fetchSamples = async () => {
-    const { data } = await supabase.auth.getSession();
-    console.log("getSession 결과:", data);
-  
-    const session = data?.session;
-    const accessToken = session?.access_token;
-    console.log("보낼 JWT (Supabase Session JWT):", accessToken);
-  
-    const res = await fetch("/api/samples", {
-      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-    });
-  
-    if (res.ok) {
-      const rows = await res.json();
-      setData(rows);
-    } else {
-      console.error("API 에러 상태 코드:", res.status);
+    try {
+      const rows = await fetchWithAuth("/api/samples");
+      setData(rows); // DataContext의 setData 사용
+    } catch (err) {
+      console.error("샘플 로드 실패:", err.message);
     }
   };
   
-
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
       if (session) {
         fetchSamples();  // ✅ 세션 있으면 바로 fetchSamples 실행
       }
     });
   
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
       if (session) {
         fetchSamples();  // ✅ 로그인/로그아웃 시에도 fetchSamples 실행
       }
@@ -96,13 +84,6 @@ export default function SelectPage() {
     return () => {
       listener?.subscription.unsubscribe();
     };
-  }, []);
-
-  useEffect(() => {
-    fetch(nutrientDataPath)
-      .then((res) => res.json())
-      .then((data) => setNutrientData(data))
-      .catch((err) => console.error("데이터 로드 실패:", err));
   }, []);
 
   // ✅ out-of-range 방지
@@ -160,9 +141,9 @@ export default function SelectPage() {
   return (
     <div
       style={{
-        opacity: session ? 1 : 0.3,
+        opacity: 1,
         transition: "opacity 0.3s",
-        pointerEvents: session ? "auto" : "none",
+        pointerEvents: "auto",
       }}
     >
       <Grid container spacing={2} sx={{ p: 2 }}>
@@ -268,7 +249,7 @@ export default function SelectPage() {
                 <Select
                   labelId="water-label"
                   value={selectedWaterSource}
-                  onChange={(e) => setSelectedWaterSource(e.target.value)}
+                  onChange={e => setSelectedWaterSource(e.target.value)}
                   label="원수 조성"
                 >
                   <MenuItem value=""><em>선택</em></MenuItem>
@@ -284,7 +265,7 @@ export default function SelectPage() {
                 <Select
                   labelId="drain-label"
                   value={selectedDrainSource}
-                  onChange={(e) => setSelectedDrainSource(e.target.value)}
+                  onChange={e => setSelectedDrainSource(e.target.value)}
                   label="배액 조성"
                 >
                   <MenuItem value=""><em>선택</em></MenuItem>

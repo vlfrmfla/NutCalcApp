@@ -16,8 +16,12 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   TextField,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import { Solution, Adjustment } from "@/utils/calculation";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { Tooltip, Alert } from "@mui/material";
 
 export default function Calculate() {
   const {
@@ -29,6 +33,9 @@ export default function Calculate() {
     selectedDrainSource,
     tankVolume,
     setTankVolume,
+    hco3, setHco3,
+    neutralizationType, setNeutralizationType,
+    phosphateType, setPhosphateType,
   } = useContext(DataContext);
 
   const [compositionDetails, setCompositionDetails] = useState(null);
@@ -41,14 +48,18 @@ export default function Calculate() {
   const [fertilizerType, setFertilizerType] = useState("4수염");
   const [FefertilizerType, setFeFertilizerType] = useState("Fe-DTPA");
   const [concentration, setConcentration] = useState(100);
+  const [ph, setPh] = useState(5.8); // pH 상태 추가 (기본값 5.8)
+  const [neutralizeHCO3, setNeutralizeHCO3] = useState(false); // HCO3 중화 옵션
+
+  
   const aTankKeys = [
-    "KNO3_A", // ✅ 추가된 KNO3 분할 항목
+    "KNO3_A",
     fertilizerType === "4수염" ? "CaNO3_4H2O" : "CaNO3_10H2O",
     "NH4NO3",
-    "HNO3",
     FefertilizerType === "Fe-EDTA" ? "Fe_EDTA" : "Fe_DTPA",
   ];
   const bTankKeys = [
+    "HNO3", // 질산을 B Tank로 이동
     "KNO3_B",
     "KH2PO4",
     "MgSO4",
@@ -59,6 +70,7 @@ export default function Calculate() {
     "CuSO4",
     "NaMoO4",
   ];
+  
   const getFertValue = (key) => {
     const kg = fertilizerResult?.kgPerStock?.[key];
     const g = fertilizerResult?.microFertgPerStock?.[key];
@@ -98,17 +110,28 @@ export default function Calculate() {
 
   // ✅ 조성 데이터 가져오기
   useEffect(() => {
+    console.log("조성 데이터 로드 트리거:");
+    console.log("selectedCrop:", selectedCrop);
+    console.log("selectedSubstrate:", selectedSubstrate);
+    console.log("selectedComposition:", selectedComposition);
+    
     const fetchData = async () => {
-      const res = await fetch("/nutrient_solution.json");
-      const nutrientData = await res.json();
-      const composition =
-        nutrientData?.[selectedCrop]?.[selectedSubstrate]?.[
-          selectedComposition
-        ];
-      setCompositionDetails(composition || null);
+      try {
+        const res = await fetch("/nutrient_solution.json");
+        const nutrientData = await res.json();
+        const composition = nutrientData?.[selectedCrop]?.[selectedSubstrate]?.[selectedComposition];
+        console.log("로드된 조성:", composition);
+        setCompositionDetails(composition || null);
+      } catch (error) {
+        console.error("조성 데이터 로드 에러:", error);
+      }
     };
+    
     if (selectedCrop && selectedSubstrate && selectedComposition) {
       fetchData();
+    } else {
+      console.log("조성 선택 값이 부족함");
+      setCompositionDetails(null);
     }
   }, [selectedCrop, selectedSubstrate, selectedComposition]);
 
@@ -117,6 +140,19 @@ export default function Calculate() {
     if (data && selectedWaterSource) {
       const source = data.find((d) => d.analysis === selectedWaterSource);
       setWaterSourceDetails(source || null);
+    }
+  }, [selectedWaterSource, data]);
+
+  // ✅ 방어 코드: selectedWaterSource가 옵션에 없으면 자동으로 ""로 리셋
+  useEffect(() => {
+    if (
+      selectedWaterSource &&
+      data &&
+      !data.some((d) => d.analysis === selectedWaterSource)
+    ) {
+      setWaterSourceDetails(null);
+      // DataContext에서 setSelectedWaterSource가 있다면 아래도 추가:
+      // setSelectedWaterSource("");
     }
   }, [selectedWaterSource, data]);
 
@@ -130,6 +166,13 @@ export default function Calculate() {
     }
   }, [compositionDetails, waterSourceDetails]);
 
+  useEffect(() => {
+    console.log("compositionDetails:", compositionDetails);
+    if (compositionDetails && compositionDetails.pH !== undefined) {
+      setPh(compositionDetails.pH);
+    }
+  }, [compositionDetails]);
+
   // ✅ 계산 요청
   const handleCalculate = async () => {
     setLoading(true);
@@ -142,12 +185,15 @@ export default function Calculate() {
           crop: selectedCrop,
           substrate: selectedSubstrate,
           composition: selectedComposition,
-          waterSource: selectedWaterSource,
+          waterSource: selectedWaterSource, // 이 값이 제대로 들어가는지 확인
           drainSource: selectedDrainSource,
           fertilizerType,
           FeType: FefertilizerType,
           concentration,
           tankVolume,
+          ph,
+          neutralizeHCO3,
+          hco3: hco3,
         }),
       });
 
@@ -195,15 +241,82 @@ export default function Calculate() {
     "Mo",
   ];
 
+  // 목표 조성 표시용: Adjustment.calculateOpenLoop 함수 직접 사용
+  const compositionWithHCO3 = compositionDetails
+    ? { ...compositionDetails, HCO3: hco3 !== undefined ? hco3 : compositionDetails.HCO3 }
+    : null;
+
+  const targetIonsDisplay = (compositionWithHCO3 && waterSourceDetails)
+    ? Adjustment.calculateOpenLoop(new Solution(compositionWithHCO3), new Solution(waterSourceDetails))
+    : compositionWithHCO3;
+
+
+
+  useEffect(() => {
+    console.log('compositionDetails:', compositionDetails);
+    console.log('waterSourceDetails:', waterSourceDetails);
+    console.log('targetIonsDisplay:', targetIonsDisplay);
+  }, [compositionDetails, waterSourceDetails, targetIonsDisplay]);
+
+  // 목표조성 계산 useEffect에 의존성 추가
+  useEffect(() => {
+    console.log("목표조성 계산 트리거:");
+    console.log("compositionDetails:", compositionDetails);
+    console.log("waterSourceDetails:", waterSourceDetails);
+    console.log("hco3:", hco3);
+    
+    if (compositionDetails && waterSourceDetails) {
+      const compositionWithHCO3 = { 
+        ...compositionDetails, 
+        HCO3: hco3 !== undefined ? hco3 : compositionDetails.HCO3 
+      };
+      const solution = new Solution(compositionWithHCO3);
+      const rawWater = new Solution(waterSourceDetails);
+      const ions = Adjustment.calculateOpenLoop(solution, rawWater);
+      setTargetIons(ions);
+      console.log("목표조성 계산 완료:", ions);
+    }
+  }, [compositionDetails, waterSourceDetails, hco3]); // hco3도 의존성에 추가
+
+  useEffect(() => {
+    console.log("=== 계산탭 상태 확인 ===");
+    console.log("selectedCrop:", selectedCrop);
+    console.log("selectedSubstrate:", selectedSubstrate);  
+    console.log("selectedComposition:", selectedComposition);
+    console.log("selectedWaterSource:", selectedWaterSource);
+    console.log("compositionDetails:", compositionDetails);
+    console.log("waterSourceDetails:", waterSourceDetails);
+    console.log("targetIonsDisplay:", targetIonsDisplay);
+  }, [selectedCrop, selectedSubstrate, selectedComposition, selectedWaterSource, compositionDetails, waterSourceDetails, targetIonsDisplay]);
+
+  useEffect(() => {
+    console.log("원수 정보 확인:");
+    console.log("selectedWaterSource:", selectedWaterSource);
+    console.log("waterSourceDetails:", waterSourceDetails);
+    console.log("waterSourceDetails.HCO3:", waterSourceDetails?.HCO3);
+  }, [selectedWaterSource, waterSourceDetails]);
+
   return (
     <Grid container spacing={2} sx={{ padding: 3 }}>
       <Grid item xs={12}>
-        <Typography variant="h5" sx={{ fontWeight: "bold", color: "grey" }}>
+        <Typography variant="h5" sx={{ fontWeight: "bold", color: "grey", display: 'flex', alignItems: 'center' }}>
           조성계산 탭
+          {!waterSourceDetails && (
+            <Tooltip title="양액 조성 계산을 위한 페이지">
+              <InfoOutlinedIcon color="primary" sx={{ ml: 2 }} />
+            </Tooltip>
+          )}
         </Typography>
       </Grid>
+      {!waterSourceDetails && (
+        <Grid item xs={3}>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            양액조성 선택 탭에서 <strong>원수</strong>를 먼저 선택해주세요.
+          </Alert>
+        </Grid>
+      )}
 
-      {targetIons && (
+      {targetIonsDisplay && (
         <Grid item xs={12}>
           <TableContainer component={Paper} sx={{ mt: 2 }}>
             <Table>
@@ -225,69 +338,69 @@ export default function Calculate() {
               </TableHead>
 
               <TableBody>
-                {/* 목표 조성 */}
-                <TableRow>
-                  <TableCell align="center">목표 조성</TableCell>
-                  {displayKeys.map((key) => (
-                    <TableCell key={key} align="center">
-                      {targetIons[key] !== undefined
-                        ? targetIons[key].toFixed(2)
-                        : "-"}
-                    </TableCell>
-                  ))}
-                </TableRow>
-
-                {/* 실제 조성 */}
-                {fertilizerResult?.ions && (
+                {/* 목표 조성: 원수 선택 시에만 표시 */}
+                {waterSourceDetails && (
                   <TableRow>
-                    <TableCell align="center">실제 조성</TableCell>
+                    <TableCell align="center">목표 조성</TableCell>
                     {displayKeys.map((key) => (
                       <TableCell key={key} align="center">
-                        {fertilizerResult.ions[key] !== undefined
-                          ? fertilizerResult.ions[key].toFixed(2)
+                        {targetIonsDisplay[key] !== undefined
+                          ? targetIonsDisplay[key].toFixed(2)
                           : "-"}
                       </TableCell>
                     ))}
                   </TableRow>
                 )}
 
-                {/* 비교 (%) */}
+                {/* 실제 조성/비교: fertilizerResult가 있을 때만 표시 */}
                 {fertilizerResult?.ions && (
-                  <TableRow>
-                    <TableCell align="center">비교 (%)</TableCell>
-                    {displayKeys.map((key) => {
-                      const target = targetIons[key];
-                      const actual = fertilizerResult.ions[key];
-                      let ratioDisplay = "-";
-                      let bgColor = "transparent";
-
-                      if (target && actual !== undefined) {
-                        const ratio = (actual / target) * 100;
-                        ratioDisplay = `${Math.round(ratio)}`;
-
-                        if (ratio > 105) {
-                          bgColor = "#ef9a9a"; // 연한 빨간색
-                        } else if (ratio < 95) {
-                          bgColor = "#90caf9"; // 연한 파란색
-                        }
-                      } else if (target === 0 && actual > 0) {
-                        ratioDisplay = ">100%";
-                        bgColor = "#ef9a9a";
-                      } else if (target === 0 && actual === 0) {
-                        ratioDisplay = "100%";
-                      }
-
-                      return (
-                        <TableCell
-                          key={key}
-                          align="center"
-                          sx={{ backgroundColor: bgColor }}
-                        >
-                          {ratioDisplay}
+                  <>
+                    <TableRow>
+                      <TableCell align="center">실제 조성</TableCell>
+                      {displayKeys.map((key) => (
+                        <TableCell key={key} align="center">
+                          {fertilizerResult.ions[key] !== undefined
+                            ? fertilizerResult.ions[key].toFixed(2)
+                            : "-"}
                         </TableCell>
-                      );
-                    })}
-                  </TableRow>
+                      ))}
+                    </TableRow>
+                    <TableRow>
+                      <TableCell align="center">비교 (%)</TableCell>
+                      {displayKeys.map((key) => {
+                        const target = targetIonsDisplay[key];
+                        const actual = fertilizerResult.ions[key];
+                        let ratioDisplay = "-";
+                        let bgColor = "transparent";
+
+                        if (target && actual !== undefined) {
+                          const ratio = (actual / target) * 100;
+                          ratioDisplay = `${Math.round(ratio)}`;
+
+                          if (ratio > 105) {
+                            bgColor = "#ef9a9a"; // 연한 빨간색
+                          } else if (ratio < 95) {
+                            bgColor = "#90caf9"; // 연한 파란색
+                          }
+                        } else if (target === 0 && actual > 0) {
+                          ratioDisplay = ">100%";
+                          bgColor = "#ef9a9a";
+                        } else if (target === 0 && actual === 0) {
+                          ratioDisplay = "100%";
+                        }
+
+                        return (
+                          <TableCell
+                            key={key}
+                            align="center"
+                            sx={{ backgroundColor: bgColor }}
+                          >
+                            {ratioDisplay}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  </>
                 )}
               </TableBody>
             </Table>
@@ -314,6 +427,23 @@ export default function Calculate() {
             </ToggleButtonGroup>
           </Grid>
 
+          {/* 인산비료 종류 */}
+          <Grid item xs={3}>
+            <Typography sx={{ fontWeight: "bold", mb: 1 }}>
+              인산비료 종류
+            </Typography>
+            <ToggleButtonGroup
+              value={phosphateType}
+              exclusive
+              onChange={(e, val) => val && setPhosphateType(val)}
+              fullWidth
+            >
+              <ToggleButton value="제일인산암모늄">제일인산암모늄</ToggleButton>
+              <ToggleButton value="제일인산칼륨">제일인산칼륨</ToggleButton>
+            </ToggleButtonGroup>
+          </Grid>
+
+          {/* Fe 비료 종류 */}
           <Grid item xs={3}>
             <Typography sx={{ fontWeight: "bold", mb: 1 }}>
               Fe 비료 종류
@@ -329,9 +459,46 @@ export default function Calculate() {
             </ToggleButtonGroup>
           </Grid>
 
+
+        </Grid>
+      </Grid>
+
+      {/* 두 번째 줄: 중탄산, 중화 방식, 양액탱크 용량 */}
+      <Grid item xs={12}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={3}>
+            <Typography sx={{ fontWeight: "bold", mb: 1 }}>중탄산(HCO₃⁻)목표값 설정</Typography>
+            <TextField
+              type="number"
+              size="small"
+              variant="outlined"
+              value={hco3}
+              onChange={e => {
+                let v = parseFloat(e.target.value);
+                if (isNaN(v)) v = 0.5;
+                if (v < -5) v = -5;
+                if (v > 5) v = 5;
+                setHco3(v);
+              }}
+              inputProps={{ min: -5, max: 5, step: 0.01 }}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={3}>
+            <Typography sx={{ fontWeight: "bold", mb: 1 }}>중화 방식</Typography>
+            <ToggleButtonGroup
+              value={neutralizationType}
+              exclusive
+              onChange={(e, val) => val && setNeutralizationType(val)}
+              fullWidth
+            >
+              <ToggleButton value="질산">질산(60%)</ToggleButton>
+              <ToggleButton value="인산">인산(85.5%)</ToggleButton>
+            </ToggleButtonGroup>
+          </Grid>
           {/* 농도 */}
           <Grid item xs={3}>
-            <Typography sx={{ fontWeight: "bold", mb: 1 }}>농도</Typography>
+            <Typography sx={{ fontWeight: "bold", mb: 1 }}>농도 (기본: 100배액)</Typography>
             <ToggleButtonGroup
               value={concentration}
               exclusive
@@ -343,7 +510,6 @@ export default function Calculate() {
               <ToggleButton value={200}>200배</ToggleButton>
             </ToggleButtonGroup>
           </Grid>
-
           {/* 양액탱크 용량 */}
           <Grid item xs={3}>
             <Typography sx={{ fontWeight: "bold", mb: 1 }}>

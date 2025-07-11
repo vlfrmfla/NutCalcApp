@@ -2,6 +2,7 @@
 
 const fertilizerParams = {
   HNO3: { molarmass: 167, density: 1.24 },
+  H3PO4: { molarmass: 97.99, density: 1.69},
   NH4NO3: { molarmass: 156, density: 1.24 },
   CaNO3_4H2O: { molarmass: 236.2 },
   CaNO3_10H2O: { molarmass: 1080.5 },
@@ -96,9 +97,14 @@ export class Adjustment {
   static calculateOpenLoop(solution, rawWater) {
     const result = {};
     for (const key of Object.keys(solution)) {
-      const base = solution[key] || 0;
-      const water = rawWater[key] || 0;
-      result[key] = key !== "HCO3" ? Math.max(0, base - water) : base - water;
+      if (key === 'pH') {
+        // pH는 빼지 않고 solution의 값을 그대로 사용
+        result[key] = solution[key];
+      } else {
+        const base = solution[key] || 0;
+        const water = rawWater[key] || 0;
+        result[key] = base - water;
+      }
     }
     return result;
   }
@@ -109,7 +115,17 @@ export function calculateFertilizers(
   FeType = "Fe-DTPA",
   options = {}
 ) {
+  console.log("reqIon.HCO3 (목표조성):", reqIon.HCO3);
+  
+  // options에서 값 추출
   const { tankVolume = 1000, concentration = 100 } = options;
+  console.log("tankVolume:", tankVolume);
+  console.log("concentration:", concentration);
+  
+  // 목표조성 HCO3가 음수면 절대값으로 중화량 계산
+  const neutralizeAmount = reqIon.HCO3 < 0 ? Math.abs(reqIon.HCO3) : 0;
+  
+  console.log("neutralizeAmount (중화해야 할 mol):", neutralizeAmount);
 
   const result = {
     fertilizers: {},
@@ -122,12 +138,11 @@ export function calculateFertilizers(
   const abs = Math.abs;
   let fert = {};
 
-  // ✅ 주요 비료 계산
   if (type === "4수염") {
     const K2SO4_SO4 = reqIon.SO4 - reqIon.Mg;
     const caFertKey = "CaNO3_4H2O";
     fert = {
-      HNO3: abs(reqIon.HCO3),
+      HNO3: neutralizeAmount, // 계산된 중화량 사용
       [caFertKey]: reqIon.Ca,
       NH4NO3: reqIon.NH4,
       KH2PO4: reqIon.PO4,
@@ -148,7 +163,7 @@ export function calculateFertilizers(
     };
   } else if (type === "10수염") {
     const NH4NO3 = reqIon.NH4 - reqIon.Ca / 5;
-    const HNO3 = abs(reqIon.HCO3);
+    const { neutralizeAmount: HNO3 } = pHNeutralization({ HCO3: reqIon.HCO3, targetHCO3: 0.5 });
     const KNO3 = reqIon.K - (HNO3 + reqIon.Ca / 5 + NH4NO3 + reqIon.Ca * 2);
     const caFertKey = "CaNO3_10H2O";
 
@@ -195,6 +210,9 @@ export function calculateFertilizers(
       result.kgPerStock[key] = 0;
     }
   }
+  // 3. 최종 질산(HNO3) kg 값 확인
+  // (kgPerStock 계산 이후에 위치해야 함)
+  console.log("result.kgPerStock.HNO3 (필요한 질산 kg):", result.kgPerStock.HNO3);
 
   // ✅ 미량원소 g 계산
   for (const el of traceElements) {
@@ -272,13 +290,21 @@ export function calculateFertilizers(
   result.kgPerStock["KNO3_A"] = shiftAmount;
   result.kgPerStock["KNO3_B"] = totalKNO3 - shiftAmount;
   delete result.kgPerStock["KNO3"];
-  
-  console.log("👉 A_mass:", A_mass.toFixed(2), "kg");
-  console.log("👉 B_mass:", B_mass.toFixed(2), "kg");
-  console.log("👉 totalKNO3:", totalKNO3.toFixed(2), "kg");
-  console.log("👉 shiftAmount:", shiftAmount.toFixed(2), "kg");
 
   return result;
 }
 
 export { fertilizerParams };
+
+
+export function pHNeutralization({ HCO3, targetHCO3 = -0.5 }) {
+  // HCO3: 원수의 HCO3 값 (예: -1.04)
+  // targetHCO3: 남겨둘 목표값 (기본 -0.5, 약간의 염기성)
+  // 중화해야 할 양 = targetHCO3 - HCO3
+  const neutralizeAmount = targetHCO3 - HCO3;
+  return {
+    neutralizeAmount: Math.max(0, neutralizeAmount), // 음수면 0으로 처리
+    message: `중탄산 ${neutralizeAmount.toFixed(2)}만큼 질산으로 중화`
+  };
+}
+
