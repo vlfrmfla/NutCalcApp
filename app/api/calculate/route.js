@@ -8,55 +8,33 @@ export async function POST(req) {
   try {
     const body = await req.json();
     console.log(body);
-    const { crop, substrate, composition, waterSource, drainSource, fertilizerType, FeFertilizerType, concentration, tankVolume } = body;
+    const { targetComposition, waterSource, drainSource, fertilizerType, FeFertilizerType, concentration, tankVolume, hco3 } = body;
 
-    if (!crop || !substrate || !composition) {
-      return NextResponse.json({ error: "필수 데이터가 누락됨" }, { status: 400 });
+    if (!targetComposition) {
+      return NextResponse.json({ error: "목표 조성 데이터가 누락됨" }, { status: 400 });
     }
 
     // 1. 데이터 불러오기
     const basePath = path.join(process.cwd(), "public");
-    const nutrientData = JSON.parse(await fs.readFile(`${basePath}/nutrient_solution.json`, "utf-8"));
     const drainData = JSON.parse(await fs.readFile(`${basePath}/drain_solution.json`, "utf-8"));
 
-    // 2. 조성 및 수질 정보 추출
-    const solutionData = nutrientData?.[crop]?.[substrate]?.[composition] || {};
-    
-    if (typeof body.hco3 === "number") {
-      solutionData.HCO3 = body.hco3;
-    }
+    // 2. 목표 조성 사용 (실제 조성이 전달됨)
+    const solutionData = targetComposition;
 
     console.log("=== API 요청 파라미터 확인 ===");
-    console.log("waterSource:", waterSource);
-    console.log("drainData 키들:", Object.keys(drainData));
+    console.log("targetComposition:", targetComposition);
+    console.log("targetComposition.HCO3:", targetComposition.HCO3);
 
-    const waterSourceData = drainData?.[waterSource] || {};
-    // 임시 설정 제거
-    // if (!waterSourceData.HCO3) {
-    //   waterSourceData.HCO3 = 1.04;
-    // }
-    console.log("waterSourceData:", waterSourceData);
-    console.log("waterSourceData.HCO3:", waterSourceData.HCO3);
+    // 3. 전달받은 목표 조성을 그대로 사용 (이미 올바르게 계산됨)
+    const targetForFertilizer = solutionData;
+    console.log("비료 계산용 목표 조성:", targetForFertilizer);
+    console.log("목표 조성 HCO3 (중화량):", targetForFertilizer.HCO3);
 
-    // 디버깅 추가
-    console.log("=== 목표조성 계산 디버깅 ===");
-    console.log("solutionData.HCO3 (조성표):", solutionData.HCO3);
-    console.log("waterSourceData.HCO3 (원수):", waterSourceData.HCO3);
-
-    const solution = new Solution(solutionData);
-    const rawWater = new Solution(waterSourceData);
-    const drain = new Solution(drainSourceData);
-
-    // 목표 조성 계산
-    const targetIons = Adjustment.calculateOpenLoop(solution, rawWater);
-    console.log("targetIons.HCO3 (계산결과):", targetIons.HCO3);
-    console.log("예상값: solutionData.HCO3 - waterSourceData.HCO3 =", solutionData.HCO3, "-", waterSourceData.HCO3, "=", solutionData.HCO3 - waterSourceData.HCO3);
-
-    // 4. 비료량 계산
+          // 4. 비료량 계산
     let fertilizerResult;
     try {
       fertilizerResult = calculateFertilizers(
-        targetIons,
+        targetForFertilizer,
         fertilizerType,
         FeFertilizerType,
         { tankVolume, concentration } // options 객체로 전달
@@ -68,8 +46,6 @@ export async function POST(req) {
 
     // 5. 응답
     return NextResponse.json({
-      solution: solution,
-      targetIons,
       fertilizers: fertilizerResult.fertilizers,
       gramsPerLiter: fertilizerResult.gramsPerLiter,
       kgPerStock: fertilizerResult.kgPerStock,

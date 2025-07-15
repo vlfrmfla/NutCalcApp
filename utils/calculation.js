@@ -194,6 +194,8 @@ export function calculateFertilizers(
   for (const el of traceElements) {
     const umol = reqIon[el];
     if (!umol) continue;
+    // ✅ 미량원소를 ions에 추가 (비료에서 그대로 공급되므로 목표값과 동일)
+    result.ions[el] = umol;
   }
 
   result.fertilizers = fert;
@@ -296,6 +298,72 @@ export function calculateFertilizers(
 
 export { fertilizerParams };
 
+// ✅ 실제 조성 계산 함수 추가
+export function calculateActualComposition(targetComposition, targetEC, actualEC) {
+  if (!targetComposition || !targetEC || !actualEC || targetEC === 0) {
+    return targetComposition;
+  }
+  
+  const ecRatio = actualEC / targetEC;
+  const actualComposition = { ...targetComposition };
+  
+  // 미량원소는 EC 비례로 직접 조정
+  const traceElements = ["Fe", "Mn", "B", "Zn", "Cu", "Mo"];
+  for (const el of traceElements) {
+    if (actualComposition[el] !== undefined) {
+      actualComposition[el] = targetComposition[el] * ecRatio;
+    }
+  }
+  
+  // 다량원소는 AN/CAT 균형을 고려하여 조정
+  const macroElements = ["NH4", "K", "Na", "Ca", "Mg", "NO3", "Cl", "SO4", "PO4"];
+  
+  // 기본 다량원소 비례 조정
+  for (const el of macroElements) {
+    if (actualComposition[el] !== undefined) {
+      actualComposition[el] = targetComposition[el] * ecRatio;
+    }
+  }
+  
+  // AN/CAT 균형 확인 및 조정
+  const solution = new Solution(actualComposition);
+  const catTotal = solution.calcCAT();
+  const anTotal = solution.calcAN();
+  
+  // EC 계산
+  actualComposition.EC = (catTotal + anTotal) / 20;
+  actualComposition.EC_Calc = actualComposition.EC;
+  
+  return actualComposition;
+}
+
+// ✅ EC 기반 조성 스케일링 함수
+export function scaleCompositionByEC(baseComposition, targetEC) {
+  if (!baseComposition || !targetEC) {
+    return baseComposition;
+  }
+  
+  const baseSolution = new Solution(baseComposition);
+  const baseEC = baseSolution.calcECNut();
+  
+  if (baseEC === 0) {
+    return baseComposition;
+  }
+  
+  const scaleFactor = targetEC / baseEC;
+  const scaledComposition = {};
+  
+  // 모든 이온 농도를 스케일링
+  Object.keys(baseComposition).forEach(key => {
+    if (typeof baseComposition[key] === 'number' && key !== 'pH') {
+      scaledComposition[key] = baseComposition[key] * scaleFactor;
+    } else {
+      scaledComposition[key] = baseComposition[key];
+    }
+  });
+  
+  return scaledComposition;
+}
 
 export function pHNeutralization({ HCO3, targetHCO3 = -0.5 }) {
   // HCO3: 원수의 HCO3 값 (예: -1.04)
