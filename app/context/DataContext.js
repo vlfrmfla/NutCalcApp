@@ -59,7 +59,7 @@ export function DataProvider({ children }) {
   const [selectedDrainSource, setSelectedDrainSource] = useState("");
   const [hco3, setHco3] = useState(0.5); // 기본값 0.5
   const [neutralizationType, setNeutralizationType] = useState("질산"); // "질산" 또는 "인산"
-  const [phosphateType, setPhosphateType] = useState("제일인산암모늄"); // "제일인산암모늄" 또는 "제일인산칼륨"
+  const [phosphateType, setPhosphateType] = useState("제일인산칼륨"); // "제일인산암모늄" 또는 "제일인산칼륨"
   const [tankVolume, setTankVolume] = useState(1000);   // 양액탱크 용량 (L)
 
 

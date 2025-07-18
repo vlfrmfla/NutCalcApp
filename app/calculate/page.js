@@ -68,7 +68,8 @@ export default function Calculate() {
     "KNO3_A",
     fertilizerType === "4수염" ? "CaNO3_4H2O" : "CaNO3_10H2O",
     "NH4NO3",
-    FefertilizerType === "Fe-EDTA" ? "Fe_EDTA" : "Fe_DTPA",
+    FefertilizerType === "Fe-EDTA" ? "Fe_EDTA" : 
+    FefertilizerType === "Fe-EDDHA" ? "Fe_EDDHA" : "Fe_DTPA",
   ];
 
   const bTankKeys = [
@@ -106,6 +107,7 @@ export default function Calculate() {
     KNO3_B: { label: "질산칼륨 B탱크 (KNO₃)", unit: "kg" },
     Fe_DTPA: { label: "철 DTPA (Fe-DTPA)", unit: "g" },
     Fe_EDTA: { label: "철 EDTA (Fe-EDTA)", unit: "g" },
+    Fe_EDDHA: { label: "철 EDDHA (Fe-EDDHA)", unit: "g" },
     MnSO4: { label: "황산망간 (MnSO₄·H₂O)", unit: "g" },
     ZnSO4: { label: "황산아연 (ZnSO₄·7H₂O)", unit: "g" },
     Borax: { label: "붕사 (Na₂B₄O₇·10H₂O)", unit: "g" },
@@ -116,6 +118,7 @@ export default function Calculate() {
   const microFertKeys = [
     "Fe_DTPA",
     "Fe_EDTA",
+    "Fe_EDDHA",
     "MnSO4",
     "ZnSO4",
     "Borax",
@@ -605,15 +608,19 @@ export default function Calculate() {
               인산비료 종류
             </Typography>
             <ToggleButtonGroup
-              value={phosphateType}
+              value={phosphateType ?? "제일인산칼륨"}
               exclusive
-              onChange={(e, val) => val && setPhosphateType(val)}
+              onChange={(e, val) => {
+                if (val) setPhosphateType(val);
+              }}
               fullWidth
             >
-              <ToggleButton value="제일인산암모늄">제일인산암모늄</ToggleButton>
               <ToggleButton value="제일인산칼륨">제일인산칼륨</ToggleButton>
+              <ToggleButton value="제일인산암모늄">제일인산암모늄</ToggleButton>
             </ToggleButtonGroup>
           </Grid>
+
+
 
           {/* Fe 비료 종류 */}
           <Grid item xs={3}>
@@ -625,9 +632,11 @@ export default function Calculate() {
               exclusive
               onChange={(e, val) => val && setFeFertilizerType(val)}
               fullWidth
+              size="small"
             >
-              <ToggleButton value="Fe-DTPA">Fe-DTPA</ToggleButton>
-              <ToggleButton value="Fe-EDTA">Fe-EDTA</ToggleButton>
+              <ToggleButton value="Fe-DTPA">DTPA</ToggleButton>
+              <ToggleButton value="Fe-EDTA">EDTA</ToggleButton>
+              <ToggleButton value="Fe-EDDHA">EDDHA</ToggleButton>
             </ToggleButtonGroup>
           </Grid>
 
@@ -766,6 +775,13 @@ export default function Calculate() {
                     const value =
                       fertilizerResult.kgPerStock?.[key] ??
                       fertilizerResult.microFertgPerStock?.[key];
+                    
+                    // 액상 비료인지 확인 (volume 데이터가 있는지로 판단)
+                    const hasVolume = fertilizerResult.kgPerStock?.[key + "_volume"] ?? 
+                                     fertilizerResult.microFertgPerStock?.[key + "_volume"];
+                    const volumeValue = hasVolume;
+                    const massValue = fertilizerResult.kgPerStock?.[key + "_mass"] ?? 
+                                     fertilizerResult.microFertgPerStock?.[key + "_mass"];
 
                     const isMicro = microFertKeys.includes(key);
 
@@ -781,10 +797,24 @@ export default function Calculate() {
                             {fertilizerLabels[key]?.label || key}
                           </TableCell>
                           <TableCell align="center">
-                            {value.toFixed(2)}{" "}
-                            {fertilizerResult.kgPerStock?.[key] !== undefined
-                              ? "kg"
-                              : "g"}
+                            {/* 액상 비료: L를 메인으로, g/kg를 보조로 */}
+                            {hasVolume ? (
+                              <>
+                                <div style={{ fontWeight: "bold", fontSize: "1.1em" }}>
+                                  {volumeValue.toFixed(3)} L
+                                </div>
+                                <div style={{ fontSize: "0.85em", color: "#666", marginTop: "4px" }}>
+                                  ({massValue ? massValue.toFixed(2) : value.toFixed(2)}{" "}
+                                  {fertilizerResult.kgPerStock?.[key] !== undefined ? "kg" : "g"})
+                                </div>
+                              </>
+                            ) : (
+                              /* 고형 비료: 기존대로 g/kg 표시 */
+                              <>
+                                {value.toFixed(2)}{" "}
+                                {fertilizerResult.kgPerStock?.[key] !== undefined ? "kg" : "g"}
+                              </>
+                            )}
                           </TableCell>
                         </TableRow>
                       )
@@ -823,6 +853,13 @@ export default function Calculate() {
                     const value =
                       fertilizerResult.kgPerStock?.[key] ??
                       fertilizerResult.microFertgPerStock?.[key];
+                    
+                    // 액상 비료인지 확인 (volume 데이터가 있는지로 판단)
+                    const hasVolume = fertilizerResult.kgPerStock?.[key + "_volume"] ?? 
+                                     fertilizerResult.microFertgPerStock?.[key + "_volume"];
+                    const volumeValue = hasVolume;
+                    const massValue = fertilizerResult.kgPerStock?.[key + "_mass"] ?? 
+                                     fertilizerResult.microFertgPerStock?.[key + "_mass"];
 
                     const isMicro = microFertKeys.includes(key);
 
@@ -838,10 +875,24 @@ export default function Calculate() {
                             {fertilizerLabels[key]?.label || key}
                           </TableCell>
                           <TableCell align="center">
-                            {value.toFixed(2)}{" "}
-                            {fertilizerResult.kgPerStock?.[key] !== undefined
-                              ? "kg"
-                              : "g"}
+                            {/* 액상 비료: L를 메인으로, g/kg를 보조로 */}
+                            {hasVolume ? (
+                              <>
+                                <div style={{ fontWeight: "bold", fontSize: "1.1em" }}>
+                                  {volumeValue.toFixed(3)} L
+                                </div>
+                                <div style={{ fontSize: "0.85em", color: "#666", marginTop: "4px" }}>
+                                  ({massValue ? massValue.toFixed(2) : value.toFixed(2)}{" "}
+                                  {fertilizerResult.kgPerStock?.[key] !== undefined ? "kg" : "g"})
+                                </div>
+                              </>
+                            ) : (
+                              /* 고형 비료: 기존대로 g/kg 표시 */
+                              <>
+                                {value.toFixed(2)}{" "}
+                                {fertilizerResult.kgPerStock?.[key] !== undefined ? "kg" : "g"}
+                              </>
+                            )}
                           </TableCell>
                         </TableRow>
                       )

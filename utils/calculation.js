@@ -10,11 +10,12 @@ const fertilizerParams = {
   MgSO4: { molarmass: 246.4 },
   K2SO4: { molarmass: 174.3 },
   KNO3: { molarmass: 101.1 },
-  Fe_DTPA: { molarmass: 932 },
-  Fe_EDTA: { molarmass: 446.17 },
+  Fe_DTPA: { molarmass: 932, density: 1.32 }, // 액상, 밀도 1.29~1.35 g/cm³
+  Fe_EDTA: { molarmass: 446.17 }, // 고형
+  Fe_EDDHA: { molarmass: 433.1 }, // 고형
   MnSO4: { molarmass: 169 },
   ZnSO4: { molarmass: 287.5 },
-  Borax: { molarmass: 95.3 },
+  Borax: { molarmass: 95.3 }, // 붕산나트륨 1mol = 4mol B 함축
   CuSO4: { molarmass: 249.7 },
   NaMoO4: { molarmass: 241.9 },
 };
@@ -115,6 +116,9 @@ export function calculateFertilizers(
   FeType = "Fe-DTPA",
   options = {}
 ) {
+  console.log("=== calculateFertilizers 함수 시작 ===");
+  console.log("type:", type);
+  console.log("FeType:", FeType);
   console.log("reqIon.HCO3 (목표조성):", reqIon.HCO3);
   
   // options에서 값 추출
@@ -231,6 +235,15 @@ export function calculateFertilizers(
       const kg =
         ((mol * param.molarmass) / 1_000_000) * tankVolume * concentration;
       result.kgPerStock[key] = kg;
+      
+      // 액상 비료의 경우 부피 계산 추가
+      if (param.density) {
+        const g = kg * 1000; // kg → g
+        const volumeL = g / (param.density * 1000); // g → L 변환
+        result.kgPerStock[key + "_volume"] = volumeL;
+        result.kgPerStock[key + "_mass"] = kg; // 원래 질량값 보존
+        console.log(`${key} 액상 - 부피: ${volumeL.toFixed(3)}L, 질량: ${kg.toFixed(3)}kg`);
+      }
     } else {
       result.kgPerStock[key] = 0;
     }
@@ -245,7 +258,13 @@ export function calculateFertilizers(
     let fertKey;
     switch (el) {
       case "Fe":
-        fertKey = FeType === "Fe-EDTA" ? "Fe_EDTA" : "Fe_DTPA";
+        if (FeType === "Fe-EDTA") {
+          fertKey = "Fe_EDTA";
+        } else if (FeType === "Fe-EDDHA") {
+          fertKey = "Fe_EDDHA";
+        } else {
+          fertKey = "Fe_DTPA"; // 기본값
+        }
         break;
       case "Mn":
         fertKey = "MnSO4";
@@ -266,20 +285,52 @@ export function calculateFertilizers(
         fertKey = null;
     }
 
+    console.log(`미량원소 ${el}: fertKey=${fertKey}, umol=${umol}`);
+    
     const param = fertilizerParams[fertKey];
     if (param?.molarmass) {
       const mol = umol * 1e-6;
-      const g = mol * param.molarmass * tankVolume * concentration;
+      let g = mol * param.molarmass * tankVolume * concentration;
+      
+      // 붕산(Borax)의 경우 1mol에 4mol B가 함축되어 있으므로 1/4로 보정
+      if (el === "B") {
+        g = g / 4;
+      }
+      
+      console.log(`${fertKey} 계산 결과: ${g.toFixed(2)}g`);
+      
+      // 액상 미량원소 비료의 경우 밀도 고려한 부피 계산 추가
+      if (param.density) {
+        const volumeL = g / (param.density * 1000); // g → L 변환 (밀도 g/cm³ = g/mL)
+        const molPerL = mol * concentration / volumeL; // mol/L 농도
+        console.log(`${fertKey} 액상 - 부피: ${volumeL.toFixed(3)}L, 질량: ${g.toFixed(2)}g`);
+        
+        // 액상 정보를 결과에 추가
+        result.microFertgPerStock[fertKey + "_volume"] = volumeL;
+        result.microFertgPerStock[fertKey + "_mass"] = g; // 원래 질량값 보존
+      }
+      
       result.microFertgPerStock[fertKey] = g;
+    } else {
+      console.log(`경고: ${fertKey}에 대한 파라미터를 찾을 수 없습니다.`);
     }
   }
 
   // ✅ A/B Tank 균형 조정
+  let feKey;
+  if (FeType === "Fe-EDTA") {
+    feKey = "Fe_EDTA";
+  } else if (FeType === "Fe-EDDHA") {
+    feKey = "Fe_EDDHA";
+  } else {
+    feKey = "Fe_DTPA";
+  }
+  
   const aTankKeys = [
     "HNO3",
     type === "4수염" ? "CaNO3_4H2O" : "CaNO3_10H2O",
     "NH4NO3",
-    FeType === "Fe-EDTA" ? "Fe_EDTA" : "Fe_DTPA",
+    feKey,
     "KNO3_A",
   ];
   const bTankKeys = [

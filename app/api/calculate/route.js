@@ -8,7 +8,7 @@ export async function POST(req) {
   try {
     const body = await req.json();
     console.log(body);
-    const { targetComposition, waterSource, drainSource, fertilizerType, FeFertilizerType, concentration, tankVolume, hco3 } = body;
+    const { targetComposition, waterSource, drainSource, fertilizerType, FeType, concentration, tankVolume, hco3 } = body;
 
     if (!targetComposition) {
       return NextResponse.json({ error: "목표 조성 데이터가 누락됨" }, { status: 400 });
@@ -22,6 +22,10 @@ export async function POST(req) {
     const solutionData = targetComposition;
 
     console.log("=== API 요청 파라미터 확인 ===");
+    console.log("fertilizerType:", fertilizerType);
+    console.log("FeType:", FeType);
+    console.log("concentration:", concentration);
+    console.log("tankVolume:", tankVolume);
     console.log("targetComposition:", targetComposition);
     console.log("targetComposition.HCO3:", targetComposition.HCO3);
 
@@ -36,7 +40,7 @@ export async function POST(req) {
       fertilizerResult = calculateFertilizers(
         targetForFertilizer,
         fertilizerType,
-        FeFertilizerType,
+        FeType,
         { tankVolume, concentration } // options 객체로 전달
       );
     } catch (calcError) {
