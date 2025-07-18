@@ -1,6 +1,7 @@
 import ClientProviders from "./components/ClientProviders";
 import UserStatusBar from "./components/UserStatusBar";
 import Footer from "./components/Footer";
+import Header from "./components/Header";
 import Link from "next/link";
 import LoginUI from "./components/LoginUI";
 import localFont from "next/font/local";
@@ -15,6 +16,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${geistSans.variable}`} style={{ fontFamily: 'Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", Arial, sans-serif' }}>
         <ClientProviders>
+          <Header />
           <UserStatusBar />
           <div className="layout">
             {/* 사이드바 */}

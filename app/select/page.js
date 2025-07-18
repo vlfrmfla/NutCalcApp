@@ -151,6 +151,19 @@ export default function SelectPage() {
           <Typography variant="h5" sx={{ fontWeight: "bold", color: "grey" }}>
             양액 조성 선택
           </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              color: "#b0b0b0",
+              display: "block",
+              mt: 0.8,
+              mb: 0.4,
+              fontSize: "0.75rem",
+              lineHeight: 1.2,
+            }}
+          >
+            Disclaimer : 양액조성선택 탭에서는 기존에 연구된 다양한 양분 조성을 선택할 수 있게 되어있습니다. 작물을 선택한 뒤, 표준양액조성에서 생육단계에 맞는 양분 조성을 선택한 뒤 원수 조성을 선택하면 표준조성-원수조성을 통해서 목표조성을 검색하도록 구현되어있습니다. 순환식 기능의 경우 현재 개발중입니다.
+          </Typography>
         </Grid>
         <Grid item xs={12}>
           <ToggleButtonGroup

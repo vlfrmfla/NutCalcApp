@@ -32,7 +32,18 @@ export const DataContext = createContext();
 
 
 export function DataProvider({ children }) {
-  const [data, setData] = useState(initialData);
+  const [data, setDataState] = useState(initialData);
+
+  // 안전한 데이터 설정 함수
+  const setData = (newData) => {
+    const processedData = Array.isArray(newData) 
+      ? newData.map(item => ({
+          ...item,
+          date: item.date instanceof Date ? item.date : new Date(item.date || Date.now())
+        }))
+      : newData;
+    setDataState(processedData);
+  };
   const [nutrientData, setNutrientData] = useState(null);
 
   // 사용자가 선택한 작물, 배지, 조성, 원수, 배액 조성, 중탄산 농도, 인산비료 종류, tank volume 
@@ -85,7 +96,12 @@ export function DataProvider({ children }) {
 
   // 데이터 추가 함수
   const addData = (newEntry) => {
-    setData([...data, newEntry]);
+    // 날짜가 없는 경우 현재 날짜를 추가
+    const entryWithDate = {
+      ...newEntry,
+      date: newEntry.date instanceof Date ? newEntry.date : new Date(newEntry.date || Date.now())
+    };
+    setData([...data, entryWithDate]);
   };
 
   // 데이터 삭제 함수

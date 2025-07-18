@@ -1,0 +1,155 @@
+.weatherCard {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 25px;
+  padding: 20px 30px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 50%;
+  margin: 0;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  height: 120px;
+}
+
+.timeSection {
+  flex: 1;
+  min-width: 0;
+}
+
+.time {
+  font-size: 2.8rem;
+  font-weight: 300;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+
+.date {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 8px;
+}
+
+.location {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.weatherSection {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  justify-content: center;
+}
+
+.weatherIcon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.temperature {
+  font-size: 2.5rem;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.weatherDescription {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.additionalInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  padding-left: 30px;
+  flex: 1;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.infoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.infoLabel {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+}
+
+.infoValue {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #5dade2;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 40px 20px;
+  color: rgba(255, 255, 255, 0.8);
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.error {
+  color: #e74c3c;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .weatherCard {
+    width: 100%;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    height: auto;
+  }
+  
+  .timeSection {
+    text-align: center;
+  }
+  
+  .time {
+    font-size: 2.5rem;
+  }
+  
+  .weatherIcon {
+    font-size: 2.5rem;
+  }
+  
+  .temperature {
+    font-size: 2rem;
+  }
+  
+  .additionalInfo {
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-left: 0;
+    padding-top: 15px;
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 10px;
+    min-width: auto;
+  }
+  
+  .infoItem {
+    flex-direction: column;
+    width: auto;
+    text-align: center;
+  }
+} 

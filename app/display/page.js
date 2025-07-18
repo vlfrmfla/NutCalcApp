@@ -14,13 +14,32 @@ export default function DisplayPage() {
 
   useEffect(() => {
     if (data.length > 0) {
+      // 날짜 형식을 안전하게 처리하는 함수
+      const formatDate = (dateValue) => {
+        if (!dateValue) return new Date().toLocaleDateString();
+        
+        // 이미 Date 객체인 경우
+        if (dateValue instanceof Date) {
+          return dateValue.toLocaleDateString();
+        }
+        
+        // 문자열인 경우 Date 객체로 변환
+        if (typeof dateValue === 'string') {
+          const date = new Date(dateValue);
+          return isNaN(date.getTime()) ? new Date().toLocaleDateString() : date.toLocaleDateString();
+        }
+        
+        // 그 외의 경우 현재 날짜 사용
+        return new Date().toLocaleDateString();
+      };
+
       // 초기 데이터 기반으로 시각화 데이터를 생성
       const transformedData = [
         {
           id: "EC",
           color: "hsl(113, 70%, 50%)",
           data: data.map((entry) => ({
-            x: entry.date.toLocaleDateString(), // x축을 날짜로 설정
+            x: formatDate(entry.date), // x축을 날짜로 설정
             y: entry.EC, // y축은 EC 값
           })),
         },
@@ -28,7 +47,7 @@ export default function DisplayPage() {
           id: "pH",
           color: "hsl(200, 70%, 50%)",
           data: data.map((entry) => ({
-            x: entry.date.toLocaleDateString(),
+            x: formatDate(entry.date),
             y: entry.pH,
           })),
         },
@@ -41,7 +60,7 @@ export default function DisplayPage() {
 
   return (
     <div style={{ height: "500px" }}>
-      <h2>양분 변화 시각화</h2>
+      <h3 style={{ marginLeft: "30px", color:"#2e2e2e" }}>근권부 EC 변화</h3>
       {chartData.length > 0 ? (
         <LineChartComponent data={chartData} />
       ) : (

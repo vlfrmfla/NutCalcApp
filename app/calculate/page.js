@@ -417,13 +417,27 @@ export default function Calculate() {
     <Grid container spacing={2} sx={{ padding: 3 }}>
       <Grid item xs={12}>
         <Typography variant="h5" sx={{ fontWeight: "bold", color: "grey", display: 'flex', alignItems: 'center' }}>
-          조성계산 탭
+          양액 조성 계산
           {!waterSourceDetails && (
             <Tooltip title="양액 조성 계산을 위한 페이지">
               <InfoOutlinedIcon color="primary" sx={{ ml: 2 }} />
             </Tooltip>
           )}
         </Typography>
+        <Typography
+            variant="caption"
+            sx={{
+              color: "#b0b0b0",
+              display: "block",
+              mt: 0.8,
+              mb: 0.4,
+              fontSize: "0.75rem",
+              lineHeight: 1.2,
+            }}
+          >
+          Disclaimer : 양액조성계산 탭에서는 양액조성선택 텝에서 불러온 목표 조성을 통해서 최종 양분 함량을 설정하도록 구현되어있습니다. 여기서는 질소비료, 인산비료, Fe 비료, 중화용 산을 선택하게 되어있으며, 중탄산(HCO₃⁻) 목표값, 급액 EC 농도, 양액탱크 용량을 설정하게 되어있습니다.
+          최종 급액 조성은 원수 조성과 목표 조성을 통해서 계산되며, 비료 계산 결과는 목표 조성과 비교하여 표시됩니다. 급액 EC범위를 설정하는 이유는 미량원소를 급액 농도에 비례해서 보정해주기 위해서 필요합니다.
+          </Typography>
       </Grid>
       {!waterSourceDetails && (
         <Grid item xs={4}>
