@@ -93,22 +93,24 @@ export default function Calculate() {
   };
 
   const fertilizerLabels = {
-    HNO3: { label: "질산", unit: "kg" },
-    NH4NO3: { label: "질산암모늄", unit: "kg" },
-    CaNO3_4H2O: { label: "질산칼슘 (4수염)", unit: "kg" },
-    CaNO3_10H2O: { label: "질산칼슘 (10수염)", unit: "kg" },
-    KH2PO4: { label: "인산칼륨", unit: "kg" },
-    MgSO4: { label: "황산마그네슘", unit: "kg" },
-    K2SO4: { label: "황산칼륨", unit: "kg" },
-    KNO3_A: { label: "질산칼륨 (A)", unit: "kg" },
-    KNO3_B: { label: "질산칼륨 (B)", unit: "kg" },
-    Fe_DTPA: { label: "철 (DTPA)", unit: "g" },
-    Fe_EDTA: { label: "철 (EDTA)", unit: "g" },
-    MnSO4: { label: "황산망간", unit: "g" },
-    ZnSO4: { label: "황산아연", unit: "g" },
-    Borax: { label: "붕사", unit: "g" },
-    CuSO4: { label: "황산구리", unit: "g" },
-    NaMoO4: { label: "몰리브덴산나트륨", unit: "g" },
+    HNO3: { label: "질산 (HNO₃)", unit: "kg" },
+    H3PO4: { label: "인산 (H₃PO₄)", unit: "kg" },
+    NH4NO3: { label: "질산암모늄 (NH₄NO₃)", unit: "kg" },
+    NH4H2PO4: { label: "제일인산암모늄 (NH₄H₂PO₄)", unit: "kg" },
+    CaNO3_4H2O: { label: "질산칼슘 4수염 (Ca(NO₃)₂·4H₂O)", unit: "kg" },
+    CaNO3_10H2O: { label: "질산칼슘 10수염 (Ca(NO₃)₂·10H₂O)", unit: "kg" },
+    KH2PO4: { label: "인산칼륨 (KH₂PO₄)", unit: "kg" },
+    MgSO4: { label: "황산마그네슘 (MgSO₄·7H₂O)", unit: "kg" },
+    K2SO4: { label: "황산칼륨 (K₂SO₄)", unit: "kg" },
+    KNO3_A: { label: "질산칼륨 A탱크 (KNO₃)", unit: "kg" },
+    KNO3_B: { label: "질산칼륨 B탱크 (KNO₃)", unit: "kg" },
+    Fe_DTPA: { label: "철 DTPA (Fe-DTPA)", unit: "g" },
+    Fe_EDTA: { label: "철 EDTA (Fe-EDTA)", unit: "g" },
+    MnSO4: { label: "황산망간 (MnSO₄·H₂O)", unit: "g" },
+    ZnSO4: { label: "황산아연 (ZnSO₄·7H₂O)", unit: "g" },
+    Borax: { label: "붕사 (Na₂B₄O₇·10H₂O)", unit: "g" },
+    CuSO4: { label: "황산구리 (CuSO₄·5H₂O)", unit: "g" },
+    NaMoO4: { label: "몰리브덴산나트륨 (Na₂MoO₄·2H₂O)", unit: "g" },
   };
 
   const microFertKeys = [
@@ -776,7 +778,7 @@ export default function Calculate() {
                               backgroundColor: isMicro ? "#f3e5f5" : "inherit",
                             }}
                           >
-                            {key}
+                            {fertilizerLabels[key]?.label || key}
                           </TableCell>
                           <TableCell align="center">
                             {value.toFixed(2)}{" "}
@@ -833,7 +835,7 @@ export default function Calculate() {
                               backgroundColor: isMicro ? "#f3e5f5" : "inherit",
                             }}
                           >
-                            {key}
+                            {fertilizerLabels[key]?.label || key}
                           </TableCell>
                           <TableCell align="center">
                             {value.toFixed(2)}{" "}

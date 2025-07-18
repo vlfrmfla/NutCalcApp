@@ -117,7 +117,7 @@ export default function SelectPage() {
         pointerEvents: "auto",
       }}
     >
-      <Grid container spacing={2} sx={{ p: 2 }}>
+      <Grid container spacing={2} sx={{ p: 3 }}>
         <Grid item xs={12}>
           <Typography variant="h5" sx={{ fontWeight: "bold", color: "grey" }}>
             양액 조성 선택

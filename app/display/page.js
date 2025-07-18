@@ -61,13 +61,15 @@ export default function DisplayPage() {
   }, [data]);
 
   return (
-    <div style={{ height: "600px" }}>
-      <h3 style={{ marginLeft: "40px", color:"#2e2e2e" }}>근권부 EC, pH 변화</h3>
-      {chartData.length > 0 ? (
-        <LineChartComponent data={chartData} />
-      ) : (
-        <p>데이터가 없습니다.</p>
-      )}
+    <div style={{ padding: "24px" }}>
+      <h3 style={{ color:"#2e2e2e", margin: "0 0 16px 0" }}>근권부 EC, pH 변화</h3>
+      <div style={{ height: "600px" }}>
+        {chartData.length > 0 ? (
+          <LineChartComponent data={chartData} />
+        ) : (
+          <p>데이터가 없습니다.</p>
+        )}
+      </div>
     </div>
   );
 }
