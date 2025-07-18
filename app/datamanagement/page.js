@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import {
   Table,
   TableBody,
@@ -26,6 +26,7 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import "./styles/inputdata.css";
 import { fetchWithAuth } from "@/utils/apiClient";
 import * as XLSX from 'xlsx';
+import { DataContext } from "../context/DataContext";
 
 const INITIAL_ENTRY = {
   id: null,
@@ -129,7 +130,9 @@ function CompositionDataForm({ newEntry, handleChange, fields, unitMode, molarMa
 }
 
 export default function DataManagement() {
-  const [data, setData] = useState([]);
+  // DataContext에서 데이터 가져오기
+  const { data, setData } = useContext(DataContext);
+  
   const [newEntry, setNewEntry] = useState(INITIAL_ENTRY);
   const [editingId, setEditingId] = useState(null);
   const [showRowActions, setShowRowActions] = useState(false);
@@ -372,18 +375,7 @@ export default function DataManagement() {
     return today.toISOString().split('T')[0];
   };
 
-  const fetchData = async () => {
-    try {
-      const rows = await fetchWithAuth("/api/samples");
-      setData(rows);
-    } catch (err) {
-      console.error("데이터 로드 실패:", err.message);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // DataContext에서 데이터를 관리하므로 별도 fetch 불필요
 
   const handleMetaChange = (e) => {
     setNewEntry({ ...newEntry, [e.target.name]: e.target.value });
@@ -444,15 +436,30 @@ export default function DataManagement() {
       };
       
       const cleanedEntry = sanitizeEntry(entryWithDefaultName);
-      const { id, userId, ...entryWithoutIdAndUser } = cleanedEntry;
-      await fetchWithAuth("/api/samples", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(entryWithoutIdAndUser),
-      });
-      setEditMode(false);
+      
+      if (editingId) {
+        // 편집 모드: PUT 요청
+        await fetchWithAuth("/api/samples", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(cleanedEntry),
+        });
+      } else {
+        // 새로 추가: POST 요청
+        const { id, userId, ...entryWithoutIdAndUser } = cleanedEntry;
+        await fetchWithAuth("/api/samples", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(entryWithoutIdAndUser),
+        });
+      }
+      
+      setEditingId(null);
       setNewEntry(INITIAL_ENTRY);
-      fetchData();
+      
+      // DataContext 업데이트 - 새로운 데이터 로드
+      const rows = await fetchWithAuth("/api/samples");
+      setData(rows);
     } catch (err) {
       console.error("저장 실패:", err.message);
     }
@@ -465,7 +472,10 @@ export default function DataManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
-      fetchData();
+      
+      // DataContext 업데이트 - 새로운 데이터 로드
+      const rows = await fetchWithAuth("/api/samples");
+      setData(rows);
     } catch (err) {
       console.error("삭제 실패:", err.message);
     }
@@ -473,7 +483,7 @@ export default function DataManagement() {
 
   const handleEdit = (item) => {
     setNewEntry(item);
-    setEditMode(true);
+    setEditingId(item.id);
   };
 
   // CSV 다운로드 함수

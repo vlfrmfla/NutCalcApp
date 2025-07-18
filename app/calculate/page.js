@@ -98,7 +98,7 @@ export default function Calculate() {
     NH4NO3: { label: "질산암모늄 (NH₄NO₃)", unit: "kg" },
     NH4H2PO4: { label: "제일인산암모늄 (NH₄H₂PO₄)", unit: "kg" },
     CaNO3_4H2O: { label: "질산칼슘 4수염 (Ca(NO₃)₂·4H₂O)", unit: "kg" },
-    CaNO3_10H2O: { label: "질산칼슘 10수염 (Ca(NO₃)₂·10H₂O)", unit: "kg" },
+    CaNO3_10H2O: { label: "질산칼슘 10수염 (5Ca(NO₃)₂·NH₄NO₃·10H₂O)", unit: "kg" },
     KH2PO4: { label: "인산칼륨 (KH₂PO₄)", unit: "kg" },
     MgSO4: { label: "황산마그네슘 (MgSO₄·7H₂O)", unit: "kg" },
     K2SO4: { label: "황산칼륨 (K₂SO₄)", unit: "kg" },

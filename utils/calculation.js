@@ -162,29 +162,52 @@ export function calculateFertilizers(
       HCO3: reqIon.HCO3,
     };
   } else if (type === "10수염") {
-    const NH4NO3 = reqIon.NH4 - reqIon.Ca / 5;
-    const { neutralizeAmount: HNO3 } = pHNeutralization({ HCO3: reqIon.HCO3, targetHCO3: 0.5 });
-    const KNO3 = reqIon.K - (HNO3 + reqIon.Ca / 5 + NH4NO3 + reqIon.Ca * 2);
+    // caFertKey 정의 (10수염에서는 CaNO3_10H2O 사용)
     const caFertKey = "CaNO3_10H2O";
+
+    // HNO3는 neutralizeAmount로 정의 (위 4수염과 동일하게 중화량 사용)
+    const HNO3 = neutralizeAmount;
+
+    // 10수염 사용량: 5Ca(NO₃)₂·NH₄NO₃·10H₂O이므로 1몰당 Ca 5몰 공급
+    const CaNO3_10H2O_amount = reqIon.Ca / 5;
+    
+    // NH4NO3_from_10수염: 10수염 1mol당 NH4NO3 1mol 공급 (5몰 Ca당 1몰 NH4)
+    const NH4NO3_from_10수염 = CaNO3_10H2O_amount;
+    const NH4NO3_additional = Math.max(reqIon.NH4 - NH4NO3_from_10수염, 0);
+
+    // 황산칼륨 계산: 황산마그네슘 하고 남은 SO4만큼 황산칼륨
+    const K2SO4_SO4 = reqIon.SO4 - reqIon.Mg;
+
+    // NO3 계산 (각 공급원의 NO3 기여)
+    const NO3_from_HNO3 = HNO3;
+    // 10수염에서: 5Ca(NO₃)₂ × 2 + NH₄NO₃ × 1 = 11 NO3 per 10수염 1몰
+    const NO3_from_CaNO3 = CaNO3_10H2O_amount * 11; // 10수염 1몰당 NO3 11몰
+    const NO3_from_NH4NO3 = NH4NO3_additional;
+    
+    // K 계산 (각 공급원의 K 기여)
+    const K_from_KH2PO4 = reqIon.PO4;        // 1KH2PO4 → 1K
+    const K_from_K2SO4 = K2SO4_SO4 * 2;      // 1K2SO4 → 2K, K2SO4_SO4만큼만 사용
+    const K_required = reqIon.K;
+    const KNO3 = K_required - (K_from_KH2PO4 + K_from_K2SO4);
 
     fert = {
       HNO3,
-      [caFertKey]: reqIon.Ca,
-      NH4NO3,
+      [caFertKey]: CaNO3_10H2O_amount, // 실제 10수염 사용량
+      NH4NO3: NH4NO3_additional,
       KH2PO4: reqIon.PO4,
       MgSO4: reqIon.Mg,
-      K2SO4: reqIon.SO4,
+      K2SO4: K2SO4_SO4,
       KNO3,
     };
 
     result.ions = {
-      NH4: reqIon.NH4,
-      NO3: HNO3 + reqIon.Ca * 2 + reqIon.NH4 + KNO3,
+      NH4: NH4NO3_from_10수염 + NH4NO3_additional,
+      NO3: NO3_from_HNO3 + NO3_from_CaNO3 + NO3_from_NH4NO3 + KNO3,
       PO4: reqIon.PO4,
-      K: reqIon.PO4 + reqIon.SO4 * 2 + KNO3,
-      Ca: reqIon.Ca,
+      K: K_from_KH2PO4 + K_from_K2SO4 + KNO3,
+      Ca: reqIon.Ca, // 5몰 Ca per 10수염 1몰이므로 총 Ca는 여전히 reqIon.Ca
       Mg: reqIon.Mg,
-      SO4: reqIon.Mg + reqIon.SO4,
+      SO4: reqIon.Mg + K2SO4_SO4,
       HCO3: reqIon.HCO3,
     };
   }
