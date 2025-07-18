@@ -44,21 +44,33 @@ export async function GET(req) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
+  console.log("=== Samples API GET 요청 ===");
+  console.log("사용자 ID:", userId);
+
   let { data: rows, error } = await supabase
     .from('samples')
     .select('*')
-    .eq('userId', userId);
+    .eq('userId', userId)
+    .order('date', { ascending: true }); // 날짜 순으로 정렬 (오래된 것부터)
+
+  console.log("조회된 샘플 데이터:", rows);
+  console.log("조회 에러:", error);
+  console.log("조회된 데이터 개수:", rows?.length || 0);
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 
   if (!rows || rows.length === 0) {
+    console.log("데이터가 없어서 기본 샘플 생성");
     await supabase.from('samples').insert([{ ...DEFAULT_SAMPLE, userId }]);
     ({ data: rows, error } = await supabase
       .from('samples')
       .select('*')
-      .eq('userId', userId));
+      .eq('userId', userId)
+      .order('date', { ascending: true }));
+    
+    console.log("기본 샘플 생성 후 데이터:", rows);
   }
 
   return new Response(JSON.stringify(rows), { status: 200 });

@@ -26,13 +26,26 @@ export default function LoginUI() {
     return null;
   }
 
+  // 테스트용: 로그인 강제 우회 (개발 중에만 사용)
+  // return null;
+
   const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
+    const { error } = await supabase.auth.signInWithOAuth({ 
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}`
+      }
+    });
     if (error) alert(error.message);
   };
 
   const handleKakaoLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "kakao" });
+    const { error } = await supabase.auth.signInWithOAuth({ 
+      provider: "kakao",
+      options: {
+        redirectTo: `${window.location.origin}`
+      }
+    });
     if (error) alert(error.message);
   };
 

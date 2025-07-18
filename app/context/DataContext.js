@@ -1,11 +1,13 @@
 "use client";
 import { createContext, useState, useEffect } from "react";
+import { supabase } from "@/utils/supabaseClient";
+import { fetchWithAuth } from "@/utils/apiClient";
 
-// 기본 데이터 정의
+// 기본 데이터 정의 (로그인 전 표시용)
 const initialData = [
   {
     id: 1,
-    analysis: "원수(default)",
+    analysis: "더미데이터(로그인필요)",
     date: new Date(),
     EC: 0.21,
     pH: 7.76,
@@ -36,12 +38,15 @@ export function DataProvider({ children }) {
 
   // 안전한 데이터 설정 함수
   const setData = (newData) => {
+    console.log("=== DataContext setData 호출 ===");
+    console.log("새로운 데이터:", newData);
     const processedData = Array.isArray(newData) 
       ? newData.map(item => ({
           ...item,
           date: item.date instanceof Date ? item.date : new Date(item.date || Date.now())
         }))
       : newData;
+    console.log("처리된 데이터:", processedData);
     setDataState(processedData);
   };
   const [nutrientData, setNutrientData] = useState(null);
@@ -57,6 +62,45 @@ export function DataProvider({ children }) {
   const [phosphateType, setPhosphateType] = useState("제일인산암모늄"); // "제일인산암모늄" 또는 "제일인산칼륨"
   const [tankVolume, setTankVolume] = useState(1000);   // 양액탱크 용량 (L)
 
+
+  // 로그인 상태에 따른 데이터 로딩
+  useEffect(() => {
+    const fetchSamples = async () => {
+      try {
+        console.log("=== DataContext에서 samples 데이터 로딩 ===");
+        const rows = await fetchWithAuth("/api/samples");
+        console.log("API에서 가져온 데이터:", rows);
+        setData(rows);
+      } catch (err) {
+        console.error("DataContext 데이터 로드 실패:", err.message);
+        console.log("더미 데이터 유지");
+      }
+    };
+
+    // 초기 세션 확인
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("DataContext 초기 세션:", session?.user?.id || "없음");
+      if (session) {
+        fetchSamples();
+      }
+    });
+
+    // 로그인/로그아웃 감지
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("DataContext 세션 변화:", _event, session?.user?.id || "없음");
+      if (session) {
+        fetchSamples();
+      } else {
+        // 로그아웃 시 더미 데이터로 리셋
+        console.log("로그아웃 - 더미 데이터로 리셋");
+        setDataState(initialData);
+      }
+    });
+
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
+  }, []);
 
   // nutrientData fetch (앱 시작 시 1회)
   useEffect(() => {

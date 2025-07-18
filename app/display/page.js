@@ -13,6 +13,7 @@ export default function DisplayPage() {
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
+
     if (data.length > 0) {
       // 날짜 형식을 안전하게 처리하는 함수
       const formatDate = (dateValue) => {
@@ -54,13 +55,14 @@ export default function DisplayPage() {
         // 필요에 따라 추가 데이터를 시각화 가능 (예: NH4, NO3 등)
       ];
 
+
       setChartData(transformedData);
     }
   }, [data]);
 
   return (
-    <div style={{ height: "500px" }}>
-      <h3 style={{ marginLeft: "30px", color:"#2e2e2e" }}>근권부 EC 변화</h3>
+    <div style={{ height: "600px" }}>
+      <h3 style={{ marginLeft: "40px", color:"#2e2e2e" }}>근권부 EC, pH 변화</h3>
       {chartData.length > 0 ? (
         <LineChartComponent data={chartData} />
       ) : (

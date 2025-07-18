@@ -23,8 +23,6 @@ import {
 } from "@mui/material";
 import { Solution, Adjustment } from "@/utils/calculation";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { supabase } from "@/utils/supabaseClient";
-import { fetchWithAuth } from "@/utils/apiClient";
 import { DataContext } from "../context/DataContext";
 
 const nutrientDataPath = "/nutrient_solution.json";
@@ -58,33 +56,6 @@ export default function SelectPage() {
   const [drainSourceDetails, setDrainSourceDetails] = useState(null);
   const [targetIons, setTargetIons] = useState(null);
   const [recirculationMode, setRecirculationMode] = useState("비순환식");
-
-  const fetchSamples = async () => {
-    try {
-      const rows = await fetchWithAuth("/api/samples");
-      setData(rows); // DataContext의 setData 사용
-    } catch (err) {
-      console.error("샘플 로드 실패:", err.message);
-    }
-  };
-  
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        fetchSamples();  // ✅ 세션 있으면 바로 fetchSamples 실행
-      }
-    });
-  
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        fetchSamples();  // ✅ 로그인/로그아웃 시에도 fetchSamples 실행
-      }
-    });
-  
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
-  }, []);
 
   // ✅ out-of-range 방지
   useEffect(() => {
