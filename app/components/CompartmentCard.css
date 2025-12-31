@@ -1,255 +1,177 @@
-.compartment-card {
-  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  padding: 20px;
-  transition: all 0.3s ease;
-  border: 1px solid #eee;
-}
-
-.compartment-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #eee;
-}
-
-.card-title {
+/* Priva-style horizontal row layout */
+.compartment-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.card-index {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #f8f9fa;
   border-radius: 8px;
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.card-title h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-}
-
-.card-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
+  padding: 12px 16px;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: #f5f5f5;
-  color: #666;
+  gap: 16px;
 }
 
-.action-btn:hover {
-  transform: scale(1.1);
+.compartment-row:hover {
+  background: #f0f1f3;
 }
 
-.action-btn.edit:hover {
-  background: #e3f2fd;
-  color: #1976d2;
-}
-
-.action-btn.delete:hover {
-  background: #ffebee;
-  color: #d32f2f;
-}
-
-.card-crop-info {
+.row-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-  border-radius: 12px;
-  margin-bottom: 16px;
+  min-width: 180px;
+  flex-shrink: 0;
 }
 
-.crop-icon {
-  color: #4caf50;
-  font-size: 28px !important;
+.row-index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: #667eea;
+  color: white;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
 }
 
-.crop-details {
+.row-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 100px;
 }
 
-.crop-name {
+.row-name {
   font-weight: 600;
-  font-size: 15px;
-  color: #2e7d32;
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.substrate-name {
-  font-size: 12px;
-  color: #558b2f;
+.row-crop {
+  font-size: 11px;
+  color: #888;
+  font-weight: 500;
 }
 
-.card-metrics {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 16px;
+.row-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
 }
 
-.metric-item {
-  padding: 12px;
-  border-radius: 12px;
-  background: #f5f5f5;
-  transition: background 0.3s ease;
-}
-
-.metric-item.good {
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-}
-
-.metric-item.warning {
-  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
-}
-
-.metric-item.danger {
-  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-}
-
-.metric-item.neutral {
-  background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
-}
-
-.metric-header {
+.action-btn-sm {
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: #999;
+}
+
+.action-btn-sm:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.action-btn-sm.edit:hover {
+  color: #1976d2;
+}
+
+.action-btn-sm.delete:hover {
+  color: #d32f2f;
+}
+
+.row-metrics {
+  display: flex;
   gap: 6px;
-  margin-bottom: 8px;
+  flex-grow: 1;
+  overflow-x: auto;
 }
 
-.metric-icon {
-  font-size: 18px !important;
-  color: #666;
+.metric-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 65px;
+  padding: 8px 10px;
+  border-radius: 6px;
 }
 
-.metric-item.good .metric-icon {
-  color: #4caf50;
+/* 급액 EC, pH - 파란색 계열 */
+.metric-box.supply-ec,
+.metric-box.supply-ph {
+  background: #e3f2fd;
 }
 
-.metric-item.warning .metric-icon {
-  color: #ff9800;
+/* 배액 EC, pH - 주황색 계열 */
+.metric-box.drain-ec,
+.metric-box.drain-ph {
+  background: #fff3e0;
 }
 
-.metric-item.danger .metric-icon {
-  color: #f44336;
+/* 급액량, 배액량, 배액률 - 회색 계열 */
+.metric-box.supply-amt,
+.metric-box.drain-amt,
+.metric-box.drain-rate {
+  background: #f5f5f5;
 }
 
 .metric-label {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
-  color: #666;
-  text-transform: uppercase;
+  color: #888;
+  letter-spacing: 0.2px;
 }
 
-.metric-values {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-}
-
-.metric-current {
-  font-size: 24px;
+.metric-value {
+  font-size: 15px;
   font-weight: 700;
   color: #333;
+  line-height: 1.3;
 }
 
 .metric-unit {
-  font-size: 12px;
-  color: #888;
+  font-size: 9px;
+  color: #aaa;
 }
 
-.metric-target {
-  font-size: 11px;
-  color: #888;
-  margin-top: 4px;
+/* Responsive */
+@media (max-width: 1024px) {
+  .compartment-row {
+    flex-wrap: wrap;
+  }
+
+  .row-header {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .row-metrics {
+    width: 100%;
+  }
 }
 
-.card-water-info {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid #eee;
-}
+@media (max-width: 768px) {
+  .metric-box {
+    min-width: 55px;
+    padding: 6px 8px;
+  }
 
-.water-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px;
-  border-radius: 8px;
-}
+  .metric-value {
+    font-size: 13px;
+  }
 
-.water-item.supply {
-  background: rgba(33, 150, 243, 0.1);
-}
-
-.water-item.drain {
-  background: rgba(156, 39, 176, 0.1);
-}
-
-.water-item.rate {
-  background: rgba(76, 175, 80, 0.1);
-  justify-content: center;
-}
-
-.water-icon {
-  font-size: 18px !important;
-}
-
-.water-item.supply .water-icon {
-  color: #2196f3;
-}
-
-.water-item.drain .water-icon {
-  color: #9c27b0;
-}
-
-.water-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.water-label {
-  font-size: 10px;
-  color: #888;
-  text-transform: uppercase;
-}
-
-.water-value {
-  font-size: 13px;
-  font-weight: 600;
-  color: #333;
+  .metric-label {
+    font-size: 9px;
+  }
 }

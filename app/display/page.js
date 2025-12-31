@@ -1,75 +1,150 @@
 // 파일: app/display/page.js
 "use client";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import dynamic from "next/dynamic";
-import { DataContext } from "../context/DataContext"; // DataContext 불러오기
+import { supabase } from "@/utils/supabaseClient";
+import { DataContext } from "../context/DataContext";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 
-const LineChartComponent = dynamic(() => import("../components/LineChartComponent"), {
-  ssr: false, // 서버 사이드 렌더링 비활성화
+const CompartmentChart = dynamic(() => import("../components/CompartmentChart"), {
+  ssr: false,
 });
 
 export default function DisplayPage() {
-  const { data } = useContext(DataContext); // DataContext에서 데이터 불러오기
-  const [chartData, setChartData] = useState([]);
+  const { showGuide } = useContext(DataContext);
+  const [compartments, setCompartments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   useEffect(() => {
-
-    if (data.length > 0) {
-      // 날짜 형식을 안전하게 처리하는 함수
-      const formatDate = (dateValue) => {
-        if (!dateValue) return new Date().toLocaleDateString();
-        
-        // 이미 Date 객체인 경우
-        if (dateValue instanceof Date) {
-          return dateValue.toLocaleDateString();
+    const loadCompartments = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setCompartments([]);
+          setIsLoading(false);
+          return;
         }
-        
-        // 문자열인 경우 Date 객체로 변환
-        if (typeof dateValue === 'string') {
-          const date = new Date(dateValue);
-          return isNaN(date.getTime()) ? new Date().toLocaleDateString() : date.toLocaleDateString();
-        }
-        
-        // 그 외의 경우 현재 날짜 사용
-        return new Date().toLocaleDateString();
-      };
 
-      // 초기 데이터 기반으로 시각화 데이터를 생성
-      const transformedData = [
-        {
-          id: "EC",
-          color: "hsl(113, 70%, 50%)",
-          data: data.map((entry) => ({
-            x: formatDate(entry.date), // x축을 날짜로 설정
-            y: entry.EC, // y축은 EC 값
-          })),
-        },
-        {
-          id: "pH",
-          color: "hsl(200, 70%, 50%)",
-          data: data.map((entry) => ({
-            x: formatDate(entry.date),
-            y: entry.pH,
-          })),
-        },
-        // 필요에 따라 추가 데이터를 시각화 가능 (예: NH4, NO3 등)
-      ];
+        const { data, error } = await supabase
+          .from("compartments")
+          .select("*")
+          .eq("user_id", session.user.id)
+          .order("created_at", { ascending: true });
 
+        if (error) throw error;
+        setCompartments(data || []);
+      } catch (err) {
+        console.error("컴파트먼트 로드 실패:", err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-      setChartData(transformedData);
-    }
-  }, [data]);
+    loadCompartments();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        loadCompartments();
+      } else {
+        setCompartments([]);
+      }
+    });
+
+    return () => listener?.subscription.unsubscribe();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div style={{ padding: "24px" }}>
+        <p>로딩 중...</p>
+      </div>
+    );
+  }
+
+  if (compartments.length === 0) {
+    return (
+      <div style={{ padding: "24px" }}>
+        <p style={{ color: "#666" }}>등록된 컴파트먼트가 없습니다. 대시보드에서 컴파트먼트를 추가해주세요.</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: "24px" }}>
-      <h3 style={{ color:"#2e2e2e", margin: "0 0 16px 0" }}>근권부 EC, pH 변화</h3>
-      <div style={{ height: "600px" }}>
-        {chartData.length > 0 ? (
-          <LineChartComponent data={chartData} />
-        ) : (
-          <p>데이터가 없습니다.</p>
-        )}
-      </div>
+      {/* 접을 수 있는 가이드 패널 */}
+      {showGuide && (
+        <div style={styles.guideContainer}>
+          <button
+            style={styles.guideToggle}
+            onClick={() => setIsGuideOpen(!isGuideOpen)}
+          >
+            <HelpOutlineIcon style={{ fontSize: 16, marginRight: 6 }} />
+            <span>사용 가이드</span>
+            {isGuideOpen ? (
+              <ExpandLessIcon style={{ fontSize: 18, marginLeft: "auto" }} />
+            ) : (
+              <ExpandMoreIcon style={{ fontSize: 18, marginLeft: "auto" }} />
+            )}
+          </button>
+          {isGuideOpen && (
+            <div style={styles.guideContent}>
+              <h4 style={styles.guideTitle}>급배액 관리 차트 안내</h4>
+              <ul style={styles.guideList}>
+                <li><strong>배액 EC / pH 차트</strong>: 배액의 EC(왼쪽 축)와 pH(오른쪽 축)를 이중 축으로 표시합니다.</li>
+                <li><strong>급배액량 / 배액률 차트</strong>: 급액량과 배액량(왼쪽 축, L), 배액률(오른쪽 축, %)을 표시합니다.</li>
+                <li><strong>범례 클릭</strong>: 각 시리즈를 클릭하여 표시/숨김을 전환할 수 있습니다.</li>
+                <li><strong>데이터 입력</strong>: 대시보드에서 컴파트먼트를 클릭하여 일일 기록을 추가/수정할 수 있습니다.</li>
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {compartments.map((compartment) => (
+        <CompartmentChart key={compartment.id} compartment={compartment} />
+      ))}
     </div>
   );
 }
+
+const styles = {
+  guideContainer: {
+    marginBottom: "20px",
+  },
+  guideToggle: {
+    display: "flex",
+    alignItems: "center",
+    padding: "10px 14px",
+    background: "#f8f9fa",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "13px",
+    fontWeight: 500,
+    color: "#555",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    width: "fit-content",
+  },
+  guideContent: {
+    marginTop: "12px",
+    padding: "16px 20px",
+    background: "#f8f9fa",
+    borderRadius: "8px",
+    fontSize: "13px",
+    color: "#444",
+    lineHeight: 1.6,
+  },
+  guideTitle: {
+    margin: "0 0 12px 0",
+    fontSize: "14px",
+    fontWeight: 600,
+    color: "#333",
+  },
+  guideList: {
+    margin: 0,
+    paddingLeft: "20px",
+  },
+};

@@ -1,8 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { supabase } from "@/utils/supabaseClient";
+import { DataContext } from "../context/DataContext";
 
 export default function UserStatusBar() {
+  const { showGuide, setShowGuide } = useContext(DataContext);
   const [session, setSession] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: '', nickname: '', birthyear: '' });
@@ -195,6 +197,29 @@ export default function UserStatusBar() {
                           <input name="birthyear" value={editInfo.birthyear} onChange={handleChange} placeholder="예: 1990" maxLength={4} style={{ width: '100%', marginTop: 4, background: '#f5f7fa', border: '1px solid #e0eaff', borderRadius: 10, padding: '11px 14px', fontSize: 14, boxSizing: 'border-box' }} />
                         </label>
                       </div>
+                      {/* 화면 설정 섹션 */}
+                      <div style={{ width: '92%', marginLeft: 'auto', marginRight: 'auto', marginTop: 8, marginBottom: 14, paddingTop: 14, borderTop: '1px solid #e0eaff' }}>
+                        <div style={{ fontWeight: 600, color: '#345', fontSize: 13, marginBottom: 10 }}>화면 설정</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <div style={{ fontWeight: 500, color: '#345', fontSize: 13 }}>사용 가이드 표시</div>
+                            <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>대시보드, 급배액 관리에 가이드 표시</div>
+                          </div>
+                          <label style={{ position: 'relative', display: 'inline-block', width: 44, height: 24 }}>
+                            <input type="checkbox" checked={showGuide} onChange={(e) => setShowGuide(e.target.checked)} style={{ opacity: 0, width: 0, height: 0 }} />
+                            <span style={{
+                              position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                              background: showGuide ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#ccc',
+                              transition: '0.3s', borderRadius: 24
+                            }}>
+                              <span style={{
+                                position: 'absolute', content: '', height: 18, width: 18, left: showGuide ? 23 : 3, bottom: 3,
+                                background: 'white', transition: '0.3s', borderRadius: '50%', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              }} />
+                            </span>
+                          </label>
+                        </div>
+                      </div>
                       {error && <div style={{ color: '#e74c3c', background: '#fbeaea', borderRadius: 6, padding: '7px 10px', marginBottom: 12, fontSize: 13, width: '92%', textAlign: 'center', marginLeft: 'auto', marginRight: 'auto' }}>{error}</div>}
                       <div style={{ display: 'flex', gap: 18, marginTop: 10, width: '92%', marginLeft: 'auto', marginRight: 'auto', justifyContent: 'center' }}>
                         <button type="submit" style={{ flex: 1, background: '#4a7cff', color: '#fff', border: 'none', borderRadius: 8, padding: '11px 0', fontWeight: 700, fontSize: 15, cursor: 'pointer', boxShadow: '0 2px 8px rgba(74,124,255,0.08)', transition: 'background 0.2s', minWidth: 0, maxWidth: '48%' }}
@@ -241,6 +266,29 @@ export default function UserStatusBar() {
                       <label style={{ fontWeight: 500, color: '#345', fontSize: 14, width: '100%' }}>출생년도
                         <input name="birthyear" value={editInfo.birthyear} onChange={handleChange} placeholder="예: 1990" maxLength={4} style={{ width: '100%', marginTop: 4, background: '#f5f7fa', border: '1px solid #e0eaff', borderRadius: 10, padding: '11px 14px', fontSize: 14, boxSizing: 'border-box' }} />
                       </label>
+                    </div>
+                    {/* 화면 설정 섹션 */}
+                    <div style={{ width: '92%', marginLeft: 'auto', marginRight: 'auto', marginTop: 8, marginBottom: 14, paddingTop: 14, borderTop: '1px solid #e0eaff' }}>
+                      <div style={{ fontWeight: 600, color: '#345', fontSize: 13, marginBottom: 10 }}>화면 설정</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontWeight: 500, color: '#345', fontSize: 13 }}>사용 가이드 표시</div>
+                          <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>대시보드, 급배액 관리에 가이드 표시</div>
+                        </div>
+                        <label style={{ position: 'relative', display: 'inline-block', width: 44, height: 24 }}>
+                          <input type="checkbox" checked={showGuide} onChange={(e) => setShowGuide(e.target.checked)} style={{ opacity: 0, width: 0, height: 0 }} />
+                          <span style={{
+                            position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                            background: showGuide ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#ccc',
+                            transition: '0.3s', borderRadius: 24
+                          }}>
+                            <span style={{
+                              position: 'absolute', content: '', height: 18, width: 18, left: showGuide ? 23 : 3, bottom: 3,
+                              background: 'white', transition: '0.3s', borderRadius: '50%', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            }} />
+                          </span>
+                        </label>
+                      </div>
                     </div>
                     {error && <div style={{ color: '#e74c3c', background: '#fbeaea', borderRadius: 6, padding: '7px 10px', marginBottom: 12, fontSize: 13, width: '92%', textAlign: 'center', marginLeft: 'auto', marginRight: 'auto' }}>{error}</div>}
                     <div style={{ display: 'flex', gap: 18, marginTop: 10, width: '92%', marginLeft: 'auto', marginRight: 'auto', justifyContent: 'center' }}>

@@ -6,13 +6,7 @@ CREATE TABLE IF NOT EXISTS compartments (
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   name VARCHAR(100) NOT NULL,
   crop VARCHAR(100),
-  substrate VARCHAR(100),
-  ec_target DECIMAL(4,2) DEFAULT 2.5,
-  ph_target DECIMAL(4,2) DEFAULT 5.8,
-  ec_current DECIMAL(4,2) DEFAULT 0,
-  ph_current DECIMAL(4,2) DEFAULT 0,
-  supply_amount DECIMAL(10,2) DEFAULT 0,
-  drain_amount DECIMAL(10,2) DEFAULT 0,
+  daily_records JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

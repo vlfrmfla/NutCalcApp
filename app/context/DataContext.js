@@ -51,7 +51,7 @@ export function DataProvider({ children }) {
   };
   const [nutrientData, setNutrientData] = useState(null);
 
-  // 사용자가 선택한 작물, 배지, 조성, 원수, 배액 조성, 중탄산 농도, 인산비료 종류, tank volume 
+  // 사용자가 선택한 작물, 배지, 조성, 원수, 배액 조성, 중탄산 농도, 인산비료 종류, tank volume
   const [selectedCrop, setSelectedCrop] = useState("");
   const [selectedSubstrate, setSelectedSubstrate] = useState("");
   const [selectedComposition, setSelectedComposition] = useState("");
@@ -61,6 +61,9 @@ export function DataProvider({ children }) {
   const [neutralizationType, setNeutralizationType] = useState("질산"); // "질산" 또는 "인산"
   const [phosphateType, setPhosphateType] = useState("제일인산칼륨"); // "제일인산암모늄" 또는 "제일인산칼륨"
   const [tankVolume, setTankVolume] = useState(1000);   // 양액탱크 용량 (L)
+
+  // 사용자 설정: 가이드라인 표시 여부
+  const [showGuide, setShowGuide] = useState(true);
 
 
   // 로그인 상태에 따른 데이터 로딩
@@ -124,6 +127,11 @@ export function DataProvider({ children }) {
         console.error("로컬스토리지 복원 에러:", error);
       }
     }
+    // 가이드라인 설정 복원
+    const savedGuide = localStorage.getItem('nutApp_showGuide');
+    if (savedGuide !== null) {
+      setShowGuide(savedGuide === 'true');
+    }
   }, []);
 
   useEffect(() => {
@@ -137,6 +145,11 @@ export function DataProvider({ children }) {
       }));
     }
   }, [selectedCrop, selectedSubstrate, selectedComposition, selectedWaterSource]);
+
+  // 가이드라인 설정 저장
+  useEffect(() => {
+    localStorage.setItem('nutApp_showGuide', showGuide.toString());
+  }, [showGuide]);
 
   // 데이터 추가 함수
   const addData = (newEntry) => {
@@ -180,6 +193,8 @@ export function DataProvider({ children }) {
         setNeutralizationType,
         phosphateType,
         setPhosphateType,
+        showGuide,
+        setShowGuide,
       }}
     >
       {children}
