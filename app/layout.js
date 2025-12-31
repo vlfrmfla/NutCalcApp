@@ -23,6 +23,7 @@ export default function RootLayout({ children }) {
             <aside className="sidebar">
               <nav>
                 <ul>
+                  <li><Link href="/dashboard">대시보드</Link></li>
                   <li><Link href="/select">양액 조성 선택</Link></li>
                   <li><Link href="/calculate">양액 조성 계산</Link></li>
                   <li><Link href="/datamanagement">데이터 관리</Link></li>
