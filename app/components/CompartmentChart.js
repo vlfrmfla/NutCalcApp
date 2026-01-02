@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { ResponsiveLine } from "@nivo/line";
+import "./CompartmentChart.css";
 
 export default function CompartmentChart({ compartment }) {
   const [hiddenEcPh, setHiddenEcPh] = useState({});
@@ -139,12 +140,12 @@ export default function CompartmentChart({ compartment }) {
 
   if (!hasData) {
     return (
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <h4 style={styles.title}>{compartment.name}</h4>
-          {compartment.crop && <span style={styles.cropTag}>{compartment.crop}</span>}
+      <div className="chart-container">
+        <div className="chart-header">
+          <h4 className="chart-title">{compartment.name}</h4>
+          {compartment.crop && <span className="chart-crop-tag">{compartment.crop}</span>}
         </div>
-        <p style={styles.noData}>기록된 데이터가 없습니다.</p>
+        <p className="chart-no-data">기록된 데이터가 없습니다.</p>
       </div>
     );
   }
@@ -156,17 +157,17 @@ export default function CompartmentChart({ compartment }) {
   const showRate = !hiddenVolume["배액률"] && rateData[0].data.length > 0;
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h4 style={styles.title}>{compartment.name}</h4>
-        {compartment.crop && <span style={styles.cropTag}>{compartment.crop}</span>}
+    <div className="chart-container">
+      <div className="chart-header">
+        <h4 className="chart-title">{compartment.name}</h4>
+        {compartment.crop && <span className="chart-crop-tag">{compartment.crop}</span>}
       </div>
 
-      <div style={styles.chartsWrapper}>
+      <div className="charts-wrapper">
         {/* 배액 EC / pH 차트 (Dual Axis) */}
-        <div style={styles.chartBox}>
-          <h5 style={styles.chartTitle}>배액 EC / pH</h5>
-          <div style={styles.chartArea}>
+        <div className="chart-box">
+          <h5 className="chart-box-title">배액 EC / pH</h5>
+          <div className="chart-area">
             {/* EC 차트 (왼쪽 축) */}
             {showEc && (
               <ResponsiveLine
@@ -200,7 +201,7 @@ export default function CompartmentChart({ compartment }) {
             )}
             {/* pH 차트 (오른쪽 축) - 오버레이 */}
             {showPh && (
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, pointerEvents: "none" }}>
+              <div className="chart-overlay">
                 <ResponsiveLine
                   data={phData}
                   margin={{ top: 20, right: 60, bottom: 50, left: 60 }}
@@ -226,18 +227,16 @@ export default function CompartmentChart({ compartment }) {
               </div>
             )}
             {/* 범례 */}
-            <div style={styles.legend}>
+            <div className="chart-legend">
               {[...ecData, ...phData].map((series) => (
                 <div
                   key={series.id}
-                  style={{
-                    ...styles.legendItem,
-                    opacity: hiddenEcPh[series.id] ? 0.3 : 1,
-                  }}
+                  className="chart-legend-item"
+                  style={{ opacity: hiddenEcPh[series.id] ? 0.3 : 1 }}
                   onClick={() => toggleEcPh(series.id)}
                 >
-                  <div style={{ ...styles.legendDot, backgroundColor: series.color }} />
-                  <span style={styles.legendText}>{series.id}</span>
+                  <div className="chart-legend-dot" style={{ backgroundColor: series.color }} />
+                  <span className="chart-legend-text">{series.id}</span>
                 </div>
               ))}
             </div>
@@ -245,9 +244,9 @@ export default function CompartmentChart({ compartment }) {
         </div>
 
         {/* 급배액량 / 배액률 차트 (Dual Axis) */}
-        <div style={styles.chartBox}>
-          <h5 style={styles.chartTitle}>급배액량 / 배액률</h5>
-          <div style={styles.chartArea}>
+        <div className="chart-box">
+          <h5 className="chart-box-title">급배액량 / 배액률</h5>
+          <div className="chart-area">
             {/* 급배액량 차트 (왼쪽 축) */}
             {(showSupply || showDrain) && (
               <ResponsiveLine
@@ -283,7 +282,7 @@ export default function CompartmentChart({ compartment }) {
             )}
             {/* 배액률 차트 (오른쪽 축) - 오버레이 */}
             {showRate && (
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, pointerEvents: "none" }}>
+              <div className="chart-overlay">
                 <ResponsiveLine
                   data={rateData}
                   margin={{ top: 20, right: 60, bottom: 50, left: 60 }}
@@ -309,18 +308,16 @@ export default function CompartmentChart({ compartment }) {
               </div>
             )}
             {/* 범례 */}
-            <div style={styles.legend}>
+            <div className="chart-legend">
               {[...volumeData, ...rateData].map((series) => (
                 <div
                   key={series.id}
-                  style={{
-                    ...styles.legendItem,
-                    opacity: hiddenVolume[series.id] ? 0.3 : 1,
-                  }}
+                  className="chart-legend-item"
+                  style={{ opacity: hiddenVolume[series.id] ? 0.3 : 1 }}
                   onClick={() => toggleVolume(series.id)}
                 >
-                  <div style={{ ...styles.legendDot, backgroundColor: series.color }} />
-                  <span style={styles.legendText}>{series.id}</span>
+                  <div className="chart-legend-dot" style={{ backgroundColor: series.color }} />
+                  <span className="chart-legend-text">{series.id}</span>
                 </div>
               ))}
             </div>
@@ -330,85 +327,3 @@ export default function CompartmentChart({ compartment }) {
     </div>
   );
 }
-
-const styles = {
-  container: {
-    background: "#fff",
-    borderRadius: "12px",
-    boxShadow: "0 2px 10px rgba(0, 0, 0, 0.06)",
-    padding: "20px",
-    marginBottom: "24px",
-  },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    marginBottom: "16px",
-  },
-  title: {
-    margin: 0,
-    fontSize: "16px",
-    fontWeight: 700,
-    color: "#333",
-  },
-  cropTag: {
-    padding: "4px 10px",
-    background: "linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)",
-    borderRadius: "12px",
-    fontSize: "12px",
-    fontWeight: 500,
-    color: "#2e7d32",
-  },
-  noData: {
-    color: "#888",
-    textAlign: "center",
-    padding: "40px 0",
-  },
-  chartsWrapper: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "20px",
-  },
-  chartBox: {
-    background: "#f8f9fa",
-    borderRadius: "8px",
-    padding: "16px",
-  },
-  chartTitle: {
-    margin: "0 0 12px 0",
-    fontSize: "13px",
-    fontWeight: 600,
-    color: "#555",
-  },
-  chartArea: {
-    height: "280px",
-    position: "relative",
-  },
-  legend: {
-    position: "absolute",
-    top: "10px",
-    right: "10px",
-    background: "rgba(255, 255, 255, 0.95)",
-    padding: "8px 10px",
-    borderRadius: "6px",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
-    zIndex: 10,
-  },
-  legendItem: {
-    display: "flex",
-    alignItems: "center",
-    marginBottom: "4px",
-    cursor: "pointer",
-    fontSize: "11px",
-  },
-  legendDot: {
-    width: "10px",
-    height: "10px",
-    borderRadius: "50%",
-    marginRight: "6px",
-  },
-  legendText: {
-    fontWeight: 500,
-    color: "#333",
-  },
-};

@@ -19,3 +19,155 @@
   background-color: transparent;
   transform: translate(8px, 16px);
 }
+
+/* 반응형 테이블 */
+.responsive-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.responsive-table-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.responsive-table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.responsive-table-container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .MuiFormControl-root {
+    min-width: 100% !important;
+  }
+
+  .MuiTableCell-root {
+    padding: 8px 6px !important;
+    font-size: 12px !important;
+  }
+
+  .MuiTableCell-head {
+    font-size: 11px !important;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .MuiTypography-h5 {
+    font-size: 1.1rem !important;
+  }
+
+  .MuiTypography-h6 {
+    font-size: 0.95rem !important;
+  }
+
+  .MuiTypography-caption {
+    font-size: 0.7rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .MuiToggleButton-root {
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+    min-width: auto !important;
+  }
+
+  .MuiToggleButtonGroup-root {
+    flex-wrap: wrap !important;
+  }
+
+  .MuiFormControl-root {
+    margin-bottom: 12px !important;
+    min-width: 100% !important;
+  }
+
+  .MuiSelect-select {
+    font-size: 14px !important;
+    padding: 12px !important;
+  }
+
+  .MuiInputLabel-root {
+    font-size: 13px !important;
+  }
+
+  .MuiTextField-root input {
+    font-size: 16px !important;
+    padding: 12px !important;
+  }
+
+  .MuiButton-root {
+    width: 100% !important;
+    padding: 14px !important;
+    font-size: 15px !important;
+  }
+
+  .MuiTableCell-root {
+    padding: 6px 4px !important;
+    font-size: 11px !important;
+    white-space: nowrap;
+  }
+
+  .MuiTableCell-head {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+  }
+
+  .MuiPaper-root {
+    padding: 12px !important;
+  }
+
+  .MuiGrid-container {
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  .MuiGrid-item {
+    padding: 8px 4px !important;
+  }
+
+  /* Grid 아이템 모바일에서 전체 너비 */
+  .MuiGrid-item[class*="xs-4"],
+  .MuiGrid-item[class*="xs-3"],
+  .MuiGrid-item[class*="xs-2"] {
+    max-width: 100% !important;
+    flex-basis: 100% !important;
+  }
+
+  .MuiAlert-root {
+    font-size: 13px !important;
+    padding: 10px 12px !important;
+  }
+
+  .MuiTooltip-tooltip {
+    font-size: 12px !important;
+  }
+
+  .MuiIconButton-root {
+    padding: 8px !important;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .MuiTypography-h5 {
+    font-size: 1rem !important;
+  }
+
+  .MuiTypography-h6 {
+    font-size: 0.85rem !important;
+  }
+
+  .MuiTableCell-root {
+    padding: 4px 2px !important;
+    font-size: 10px !important;
+  }
+
+  .MuiTableCell-head {
+    font-size: 9px !important;
+  }
+}

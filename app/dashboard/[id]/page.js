@@ -210,16 +210,16 @@ export default function CompartmentDetailPage() {
                       : null;
                     return (
                       <tr key={record.id}>
-                        <td className="date-cell">{new Date(record.date).toLocaleDateString("ko-KR")}</td>
-                        <td>{record.supply_ec?.toFixed(1) || "-"}</td>
-                        <td>{record.supply_ph?.toFixed(1) || "-"}</td>
-                        <td>{record.drain_ec?.toFixed(1) || "-"}</td>
-                        <td>{record.drain_ph?.toFixed(1) || "-"}</td>
-                        <td>{record.supply_amount != null ? record.supply_amount.toFixed(1) : "-"}</td>
-                        <td>{record.drain_amount != null ? record.drain_amount.toFixed(1) : "-"}</td>
-                        <td>{drainRate != null ? `${drainRate}%` : "-"}</td>
-                        <td className="memo-cell">{record.memo || "-"}</td>
-                        <td>
+                        <td className="date-cell" data-label="날짜">{new Date(record.date).toLocaleDateString("ko-KR")}</td>
+                        <td data-label="급액EC">{record.supply_ec?.toFixed(1) || "-"}</td>
+                        <td data-label="급액pH">{record.supply_ph?.toFixed(1) || "-"}</td>
+                        <td data-label="배액EC">{record.drain_ec?.toFixed(1) || "-"}</td>
+                        <td data-label="배액pH">{record.drain_ph?.toFixed(1) || "-"}</td>
+                        <td data-label="급액량">{record.supply_amount != null ? record.supply_amount.toFixed(1) : "-"}</td>
+                        <td data-label="배액량">{record.drain_amount != null ? record.drain_amount.toFixed(1) : "-"}</td>
+                        <td data-label="배액률">{drainRate != null ? `${drainRate}%` : "-"}</td>
+                        <td className="memo-cell" data-label="메모">{record.memo || "-"}</td>
+                        <td data-label="">
                           <div className="record-actions">
                             <button
                               className="icon-btn edit"

@@ -12,9 +12,126 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* 테이블 간격 */
 .table-container {
   margin-top: 50px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .table-container {
+    margin-top: 30px;
+  }
+
+  .MuiTableCell-root {
+    padding: 8px 6px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .metadata-container {
+    margin-bottom: 16px;
+  }
+
+  .composition-container {
+    margin-bottom: 16px;
+  }
+
+  .button-container {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .button-container .MuiButton-root {
+    width: 100%;
+    padding: 12px !important;
+    font-size: 14px !important;
+  }
+
+  .table-container {
+    margin-top: 24px;
+  }
+
+  /* MUI 컴포넌트 반응형 */
+  .MuiTypography-h5 {
+    font-size: 1.1rem !important;
+  }
+
+  .MuiTypography-h6 {
+    font-size: 0.95rem !important;
+  }
+
+  .MuiTextField-root {
+    margin-bottom: 8px !important;
+  }
+
+  .MuiTextField-root input {
+    font-size: 16px !important;
+    padding: 12px !important;
+  }
+
+  .MuiInputLabel-root {
+    font-size: 13px !important;
+  }
+
+  .MuiTableCell-root {
+    padding: 6px 4px !important;
+    font-size: 11px !important;
+    white-space: nowrap;
+  }
+
+  .MuiTableCell-head {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+  }
+
+  .MuiGrid-item {
+    padding: 8px !important;
+  }
+
+  .MuiIconButton-root {
+    padding: 6px !important;
+  }
+
+  .MuiPaper-root {
+    padding: 12px !important;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .MuiTypography-h5 {
+    font-size: 1rem !important;
+  }
+
+  .MuiTableCell-root {
+    padding: 4px 2px !important;
+    font-size: 10px !important;
+  }
+
+  .MuiTableCell-head {
+    font-size: 9px !important;
+  }
 }

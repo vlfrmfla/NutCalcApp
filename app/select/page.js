@@ -24,6 +24,7 @@ import {
 import { Solution, Adjustment } from "@/utils/calculation";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { DataContext } from "../context/DataContext";
+import "./calculate.css";
 
 const nutrientDataPath = "/nutrient_solution.json";
 
@@ -160,7 +161,7 @@ export default function SelectPage() {
           </CustomTooltip>
         </Grid>
         {/* 작물 선택 */}
-        <Grid item xs={4}>
+        <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
             <InputLabel id="crop-label">작물 선택</InputLabel>
             <Select
@@ -183,7 +184,7 @@ export default function SelectPage() {
           </FormControl>
         </Grid>
         {/* 배지 선택 */}
-        <Grid item xs={4}>
+        <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
             <InputLabel id="substrate-label">배지 선택</InputLabel>
             <Select
@@ -206,7 +207,7 @@ export default function SelectPage() {
           </FormControl>
         </Grid>
         {/* 조성 선택 */}
-        <Grid item xs={4}>
+        <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
             <InputLabel id="composition-label">표준 양액 조성</InputLabel>
             <Select
@@ -227,7 +228,7 @@ export default function SelectPage() {
         {/* 원수 / 배액 */}
         {compositionDetails && (
           <>
-            <Grid item xs={4}>
+            <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <InputLabel id="water-label">원수 조성</InputLabel>
                 <Select
@@ -243,7 +244,7 @@ export default function SelectPage() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={4}>
+            <Grid item xs={12} sm={6}>
               <FormControl fullWidth disabled={recirculationMode === "비순환식"}>
                 <InputLabel id="drain-label">배액 조성</InputLabel>
                 <Select

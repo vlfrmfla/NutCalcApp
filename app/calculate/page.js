@@ -22,6 +22,7 @@ import {
 import { Solution, Adjustment, calculateActualComposition, scaleCompositionByEC } from "@/utils/calculation";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { Tooltip, Alert } from "@mui/material";
+import "../select/calculate.css";
 
 export default function Calculate() {
   const {
@@ -587,8 +588,8 @@ export default function Calculate() {
       <Grid item xs={12}>
         <Grid container spacing={2} alignItems="center">
           {/* 질소비료 종류 */}
-          <Grid item xs={3}>
-            <Typography sx={{ fontWeight: "bold", mb: 1 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography sx={{ fontWeight: "bold", mb: 1, fontSize: { xs: '0.85rem', sm: '1rem' } }}>
               질소비료 종류
             </Typography>
             <ToggleButtonGroup
@@ -596,6 +597,7 @@ export default function Calculate() {
               exclusive
               onChange={(e, val) => val && setFertilizerType(val)}
               fullWidth
+              size="small"
             >
               <ToggleButton value="4수염">4수염</ToggleButton>
               <ToggleButton value="10수염">10수염</ToggleButton>
@@ -603,8 +605,8 @@ export default function Calculate() {
           </Grid>
 
           {/* 인산비료 종류 */}
-          <Grid item xs={3}>
-            <Typography sx={{ fontWeight: "bold", mb: 1 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography sx={{ fontWeight: "bold", mb: 1, fontSize: { xs: '0.85rem', sm: '1rem' } }}>
               인산비료 종류
             </Typography>
             <ToggleButtonGroup
@@ -614,17 +616,16 @@ export default function Calculate() {
                 if (val) setPhosphateType(val);
               }}
               fullWidth
+              size="small"
             >
               <ToggleButton value="제일인산칼륨">제일인산칼륨</ToggleButton>
               <ToggleButton value="제일인산암모늄">제일인산암모늄</ToggleButton>
             </ToggleButtonGroup>
           </Grid>
 
-
-
           {/* Fe 비료 종류 */}
-          <Grid item xs={3}>
-            <Typography sx={{ fontWeight: "bold", mb: 1 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography sx={{ fontWeight: "bold", mb: 1, fontSize: { xs: '0.85rem', sm: '1rem' } }}>
               Fe 비료 종류
             </Typography>
             <ToggleButtonGroup
@@ -640,15 +641,29 @@ export default function Calculate() {
             </ToggleButtonGroup>
           </Grid>
 
-
+          {/* 농도 */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography sx={{ fontWeight: "bold", mb: 1, fontSize: { xs: '0.85rem', sm: '1rem' } }}>농도</Typography>
+            <ToggleButtonGroup
+              value={concentration}
+              exclusive
+              onChange={(e, val) => val && setConcentration(val)}
+              fullWidth
+              size="small"
+            >
+              <ToggleButton value={50}>50배</ToggleButton>
+              <ToggleButton value={100}>100배</ToggleButton>
+              <ToggleButton value={200}>200배</ToggleButton>
+            </ToggleButtonGroup>
+          </Grid>
         </Grid>
       </Grid>
 
-      {/* 두 번째 줄: 중탄산, 중화 방식, 양액탱크 용량 */}
+      {/* 두 번째 줄: 중탄산, 중화 방식, 급액 EC, 양액탱크 용량 */}
       <Grid item xs={12}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={2.4}>
-            <Typography sx={{ fontWeight: "bold", mb: 1 }}>중탄산(HCO₃⁻) 목표값 설정</Typography>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography sx={{ fontWeight: "bold", mb: 1, fontSize: { xs: '0.85rem', sm: '1rem' } }}>HCO₃⁻ 목표값</Typography>
             <TextField
               type="number"
               size="small"
@@ -665,55 +680,42 @@ export default function Calculate() {
               fullWidth
             />
           </Grid>
-          <Grid item xs={2.4}>
-            <Typography sx={{ fontWeight: "bold", mb: 1 }}>중화 방식</Typography>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography sx={{ fontWeight: "bold", mb: 1, fontSize: { xs: '0.85rem', sm: '1rem' } }}>중화 방식</Typography>
             <ToggleButtonGroup
               value={neutralizationType}
               exclusive
               onChange={(e, val) => val && setNeutralizationType(val)}
               fullWidth
+              size="small"
             >
               <ToggleButton value="질산">질산(60%)</ToggleButton>
               <ToggleButton value="인산">인산(85.5%)</ToggleButton>
             </ToggleButtonGroup>
           </Grid>
           {/* 급액 EC */}
-                     <Grid item xs={2.4}>
-             <Typography sx={{ fontWeight: "bold", mb: 1 }}>급액 EC (dS/m, 범위 1.5-5)</Typography>
-             <TextField
-               type="number"
-               size="small"
-               variant="outlined"
-               value={supplyEC || ""} 
-               placeholder="목표 조성 선택 시 자동 설정"
-               onChange={e => {
-                 let v = parseFloat(e.target.value);
-                 if (isNaN(v)) return;
-                 if (v < 1.5) v = 1.5;
-                 if (v > 5.0) v = 5.0;
-                 setSupplyEC(v);
-               }}
-               inputProps={{ min: 1.5, max: 5.0, step: 0.1 }}
-               fullWidth
-             />
-           </Grid>
-          {/* 농도 */}
-          <Grid item xs={2.4}>
-            <Typography sx={{ fontWeight: "bold", mb: 1 }}>농도 (기본: 100배액)</Typography>
-            <ToggleButtonGroup
-              value={concentration}
-              exclusive
-              onChange={(e, val) => val && setConcentration(val)}
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography sx={{ fontWeight: "bold", mb: 1, fontSize: { xs: '0.85rem', sm: '1rem' } }}>급액 EC (dS/m)</Typography>
+            <TextField
+              type="number"
+              size="small"
+              variant="outlined"
+              value={supplyEC || ""}
+              placeholder="자동 설정"
+              onChange={e => {
+                let v = parseFloat(e.target.value);
+                if (isNaN(v)) return;
+                if (v < 1.5) v = 1.5;
+                if (v > 5.0) v = 5.0;
+                setSupplyEC(v);
+              }}
+              inputProps={{ min: 1.5, max: 5.0, step: 0.1 }}
               fullWidth
-            >
-              <ToggleButton value={50}>50배</ToggleButton>
-              <ToggleButton value={100}>100배</ToggleButton>
-              <ToggleButton value={200}>200배</ToggleButton>
-            </ToggleButtonGroup>
+            />
           </Grid>
           {/* 양액탱크 용량 */}
-          <Grid item xs={2.4}>
-            <Typography sx={{ fontWeight: "bold", mb: 1 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography sx={{ fontWeight: "bold", mb: 1, fontSize: { xs: '0.85rem', sm: '1rem' } }}>
               양액탱크 용량 (L)
             </Typography>
             <TextField

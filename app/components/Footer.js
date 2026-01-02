@@ -5,12 +5,9 @@ const Footer = () => {
   return (
     <footer className={styles.footer}>
       <div className={styles.footerContent}>
-        <p>개발자는 본 웹 양액조제 소프트웨어 사용에 대한 책임을 지지 않습니다.</p>
-        <p>개발자: 김동필 | homepage: https://www.cnuvege.com/</p> 
-        <p>충남대학교 원예학과 주소: 대전광역시 유성구 대학로 99</p>
-        <p>
-          <a href="#">개인정보처리방침</a> | <a href="#">이용약관</a> | Error report: <a href="https://github.com/vlfrmfla/">Github 코드 페이지 Issue</a>
-        </p>
+        <p>개발자: 김동필 (충남대학교 원예학과)</p>
+        <p><a href="https://www.cnuvege.com/" target="_blank" rel="noopener noreferrer">cnuvege.com</a></p>
+        <p><a href="https://github.com/vlfrmfla/" target="_blank" rel="noopener noreferrer">Github</a></p>
       </div>
     </footer>
   );

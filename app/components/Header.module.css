@@ -41,4 +41,49 @@
   color: #676767;
   margin: 0;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .header {
+    height: 60px;
+    padding: 0 16px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+  }
+
+  .logo img {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .header {
+    height: 56px;
+    padding: 0 12px;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .logo {
+    margin-right: 8px;
+  }
+
+  .logo img {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .title {
+    font-size: 1rem;
+  }
 } 

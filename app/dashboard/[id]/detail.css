@@ -330,36 +330,206 @@
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Tablet */
+@media (max-width: 1024px) {
   .detail-container {
     padding: 16px;
   }
 
+  .add-btn,
+  .download-btn {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .detail-container {
+    padding: 12px;
+  }
+
   .detail-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 12px;
   }
 
+  .header-left {
+    gap: 12px;
+  }
+
+  .back-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .compartment-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
   .compartment-info h1 {
-    font-size: 18px;
+    font-size: 16px;
+  }
+
+  .crop-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  .header-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .add-btn,
+  .download-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  /* 모바일 카드형 레이아웃 */
+  .records-table-wrapper {
+    overflow-x: visible;
   }
 
   .records-table {
+    font-size: 12px;
+  }
+
+  .records-table thead {
+    display: none;
+  }
+
+  .records-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-bottom: none;
+  }
+
+  .records-table tbody tr:hover {
+    background: #f0f1f3;
+  }
+
+  .records-table td {
+    padding: 6px 4px;
+    text-align: center;
+    border-bottom: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .records-table td::before {
+    content: attr(data-label);
+    font-size: 9px;
+    font-weight: 600;
+    color: #888;
+    margin-bottom: 2px;
+  }
+
+  .date-cell {
+    grid-column: 1 / -1;
+    background: #e3f2fd;
+    border-radius: 6px;
+    padding: 8px !important;
+    font-size: 13px;
+  }
+
+  .memo-cell {
+    grid-column: 1 / -1;
+    max-width: none;
+    text-align: center !important;
+    white-space: normal;
     font-size: 11px;
   }
 
-  .records-table th,
-  .records-table td {
-    padding: 8px 6px;
+  .records-table td:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .record-actions {
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .modal-overlay {
+    padding: 12px;
+    align-items: flex-end;
   }
 
   .modal-content {
     padding: 20px;
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modal-content h2 {
+    font-size: 16px;
   }
 
   .form-row {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .form-group label {
+    font-size: 12px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .form-section-label {
+    font-size: 13px;
+    margin: 12px 0 6px 0;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .btn-cancel,
+  .btn-save {
+    width: 100%;
+    padding: 14px;
+    font-size: 15px;
+  }
+
+  .empty-records {
+    padding: 40px 16px;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .detail-container {
+    padding: 10px;
+  }
+
+  .records-table tbody tr {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

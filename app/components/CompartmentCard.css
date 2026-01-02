@@ -162,9 +162,65 @@
 }
 
 @media (max-width: 768px) {
+  .compartment-row {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .row-header {
+    gap: 10px;
+  }
+
+  .row-index {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+
+  .row-name {
+    font-size: 13px;
+  }
+
+  .row-crop {
+    font-size: 10px;
+  }
+
+  .row-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    overflow-x: visible;
+  }
+
   .metric-box {
-    min-width: 55px;
-    padding: 6px 8px;
+    min-width: unset;
+    padding: 8px 6px;
+  }
+
+  .metric-value {
+    font-size: 14px;
+  }
+
+  .metric-label {
+    font-size: 9px;
+  }
+
+  .metric-unit {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .compartment-row {
+    padding: 10px;
+  }
+
+  .row-metrics {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .metric-box {
+    padding: 6px 4px;
   }
 
   .metric-value {
@@ -172,6 +228,6 @@
   }
 
   .metric-label {
-    font-size: 9px;
+    font-size: 8px;
   }
 }

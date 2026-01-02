@@ -7,6 +7,7 @@ import { DataContext } from "../context/DataContext";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import "./display.css";
 
 const CompartmentChart = dynamic(() => import("../components/CompartmentChart"), {
   ssr: false,
@@ -58,27 +59,27 @@ export default function DisplayPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: "24px" }}>
-        <p>로딩 중...</p>
+      <div className="display-container">
+        <p className="display-loading">로딩 중...</p>
       </div>
     );
   }
 
   if (compartments.length === 0) {
     return (
-      <div style={{ padding: "24px" }}>
-        <p style={{ color: "#666" }}>등록된 컴파트먼트가 없습니다. 대시보드에서 컴파트먼트를 추가해주세요.</p>
+      <div className="display-container">
+        <p className="display-empty">등록된 컴파트먼트가 없습니다. 대시보드에서 컴파트먼트를 추가해주세요.</p>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div className="display-container">
       {/* 접을 수 있는 가이드 패널 */}
       {showGuide && (
-        <div style={styles.guideContainer}>
+        <div className="guide-container">
           <button
-            style={styles.guideToggle}
+            className="guide-toggle"
             onClick={() => setIsGuideOpen(!isGuideOpen)}
           >
             <HelpOutlineIcon style={{ fontSize: 16, marginRight: 6 }} />
@@ -90,9 +91,9 @@ export default function DisplayPage() {
             )}
           </button>
           {isGuideOpen && (
-            <div style={styles.guideContent}>
-              <h4 style={styles.guideTitle}>급배액 관리 차트 안내</h4>
-              <ul style={styles.guideList}>
+            <div className="guide-content">
+              <h4 className="guide-title">급배액 관리 차트 안내</h4>
+              <ul className="guide-list">
                 <li><strong>배액 EC / pH 차트</strong>: 배액의 EC(왼쪽 축)와 pH(오른쪽 축)를 이중 축으로 표시합니다.</li>
                 <li><strong>급배액량 / 배액률 차트</strong>: 급액량과 배액량(왼쪽 축, L), 배액률(오른쪽 축, %)을 표시합니다.</li>
                 <li><strong>범례 클릭</strong>: 각 시리즈를 클릭하여 표시/숨김을 전환할 수 있습니다.</li>
@@ -109,42 +110,3 @@ export default function DisplayPage() {
     </div>
   );
 }
-
-const styles = {
-  guideContainer: {
-    marginBottom: "20px",
-  },
-  guideToggle: {
-    display: "flex",
-    alignItems: "center",
-    padding: "10px 14px",
-    background: "#f8f9fa",
-    border: "none",
-    borderRadius: "8px",
-    fontSize: "13px",
-    fontWeight: 500,
-    color: "#555",
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    width: "fit-content",
-  },
-  guideContent: {
-    marginTop: "12px",
-    padding: "16px 20px",
-    background: "#f8f9fa",
-    borderRadius: "8px",
-    fontSize: "13px",
-    color: "#444",
-    lineHeight: 1.6,
-  },
-  guideTitle: {
-    margin: "0 0 12px 0",
-    fontSize: "14px",
-    fontWeight: 600,
-    color: "#333",
-  },
-  guideList: {
-    margin: 0,
-    paddingLeft: "20px",
-  },
-};
