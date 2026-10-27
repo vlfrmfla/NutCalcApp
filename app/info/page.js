@@ -10,6 +10,8 @@ import CalculateIcon from "@mui/icons-material/Calculate";
 import StorageIcon from "@mui/icons-material/Storage";
 import SettingsIcon from "@mui/icons-material/Settings";
 import TipsAndUpdatesIcon from "@mui/icons-material/TipsAndUpdates";
+import GrassIcon from "@mui/icons-material/Grass";
+import CropCatalog from "../components/CropCatalog";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import "./info.css";
 
@@ -24,6 +26,7 @@ export default function InfoPage() {
     settings: false,
     tips: false,
     reference: false,
+    crops: false,
   });
 
   const toggleSection = (section) => {
@@ -362,6 +365,16 @@ export default function InfoPage() {
             <li><strong>배액률</strong>: 일반적으로 20~40% 권장 (계절, 작물에 따라 조정)</li>
           </ul>
         </div>
+      </Section>
+
+      {/* 수록 작물 */}
+      <Section
+        title="수록 작물과 조성"
+        icon={<GrassIcon className="info-section-icon" />}
+        isOpen={openSections.crops}
+        onToggle={() => toggleSection("crops")}
+      >
+        <CropCatalog />
       </Section>
 
       <footer className="info-footer">

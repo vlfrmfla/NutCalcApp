@@ -1,14 +1,23 @@
 "use client";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { DataContext } from "../context/DataContext";
 import { supabase } from "@/utils/supabaseClient";
 import CompartmentCard from "../components/CompartmentCard";
+import WeatherCard from "../components/WeatherCard";
 import AddIcon from "@mui/icons-material/Add";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import "./dashboard.css";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// 날짜순(최신 먼저)으로 정렬한 첫 기록
+function latestRecordOf(records) {
+  if (!Array.isArray(records) || records.length === 0) return null;
+  return [...records].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -57,6 +66,25 @@ export default function DashboardPage() {
 
     return () => listener?.subscription.unsubscribe();
   }, []);
+
+  // 상단 요약 수치
+  const stats = useMemo(() => {
+    const records = compartments.flatMap((c) => c.daily_records || []);
+    const dates = records.map((r) => r.date).filter(Boolean).sort();
+    const latestDate = dates.length ? dates[dates.length - 1] : null;
+    const weekAgo = Date.now() - 7 * DAY_MS;
+    const recent7 = records.filter((r) => r.date && new Date(r.date).getTime() >= weekAgo).length;
+    const rates = compartments
+      .map((c) => {
+        const latest = latestRecordOf(c.daily_records);
+        const supply = Number(latest?.supply_amount);
+        const drain = Number(latest?.drain_amount);
+        return latest && supply > 0 && Number.isFinite(drain) ? (drain / supply) * 100 : null;
+      })
+      .filter((v) => v != null);
+    const avgDrainRate = rates.length ? Math.round(rates.reduce((a, b) => a + b, 0) / rates.length) : null;
+    return { totalRecords: records.length, latestDate, recent7, avgDrainRate };
+  }, [compartments]);
 
   // 컴파트먼트 추가
   const handleAddCompartment = async (newCompartment) => {
@@ -134,6 +162,45 @@ export default function DashboardPage() {
 
   return (
     <div className="dashboard-container">
+      <WeatherCard />
+
+      <div className="dashboard-header">
+        <div className="dashboard-title">
+          <h1>컴파트먼트</h1>
+          <p className="dashboard-subtitle">
+            {isLoading
+              ? "불러오는 중..."
+              : compartments.length === 0
+                ? "재배 구역을 등록하면 급배액 기록을 관리할 수 있습니다."
+                : `${compartments.length}개 등록 · 기록 ${stats.totalRecords}건${stats.latestDate ? ` · 마지막 기록 ${stats.latestDate}` : ""}`}
+          </p>
+        </div>
+        <button className="add-btn" onClick={() => setIsAddModalOpen(true)}>
+          <AddIcon style={{ fontSize: 18 }} /> 컴파트먼트 추가
+        </button>
+      </div>
+
+      {!isLoading && compartments.length > 0 && (
+        <div className="stat-tiles">
+          <div className="stat-tile">
+            <span className="stat-label">컴파트먼트</span>
+            <span className="stat-value">{compartments.length}<small>개</small></span>
+          </div>
+          <div className="stat-tile">
+            <span className="stat-label">전체 기록</span>
+            <span className="stat-value">{stats.totalRecords}<small>건</small></span>
+          </div>
+          <div className="stat-tile">
+            <span className="stat-label">최근 7일 기록</span>
+            <span className="stat-value">{stats.recent7}<small>건</small></span>
+          </div>
+          <div className="stat-tile">
+            <span className="stat-label">평균 배액률 (최근 기록)</span>
+            <span className="stat-value">{stats.avgDrainRate ?? "-"}<small>%</small></span>
+          </div>
+        </div>
+      )}
+
       {/* 접을 수 있는 가이드 패널 */}
       {showGuide && (
         <div className="guide-container">
@@ -164,19 +231,17 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="dashboard-header">
-        <button className="add-btn" onClick={() => setIsAddModalOpen(true)}>
-          <AddIcon style={{ fontSize: 18 }} /> 컴파트먼트 추가
-        </button>
-      </div>
-
       {isLoading ? (
         <div className="loading-container">
           <p>로딩 중...</p>
         </div>
       ) : compartments.length === 0 ? (
         <div className="empty-state">
-          <p>등록된 컴파트먼트가 없습니다.</p>
+          <p className="empty-title">등록된 컴파트먼트가 없습니다</p>
+          <p>재배 구역(컴파트먼트)을 추가하고 일일 급배액 기록을 남겨 보세요. 기록은 &apos;급배액 관리&apos;에서 차트로 볼 수 있습니다.</p>
+          <button className="add-btn" onClick={() => setIsAddModalOpen(true)}>
+            <AddIcon style={{ fontSize: 18 }} /> 첫 컴파트먼트 추가
+          </button>
         </div>
       ) : (
         <div className="compartments-list">

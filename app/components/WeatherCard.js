@@ -84,9 +84,10 @@ export default function WeatherCard() {
           },
           (error) => {
             console.error('위치 정보 에러:', error);
-            setError('위치정보사용에 동의하세요');
+            setError(error?.code === 1 ? '위치 정보 사용을 허용하면 현재 위치의 날씨가 표시됩니다.' : '위치 정보를 가져오지 못했습니다.');
             setLoading(false);
-          }
+          },
+          { timeout: 15000, maximumAge: 600000 }
         );
       } catch (err) {
         setError(err.message);
@@ -142,19 +143,34 @@ export default function WeatherCard() {
     }
   };
 
+  let weatherBody;
   if (loading) {
-    return (
-      <div className={styles.weatherCard}>
-        <div className={styles.loading}>날씨 정보를 불러오는 중...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={styles.weatherCard}>
-        <div className={styles.error}>{error}</div>
-      </div>
+    weatherBody = <div className={styles.status}>날씨 정보를 불러오는 중...</div>;
+  } else if (error) {
+    weatherBody = <div className={styles.status}>{error}</div>;
+  } else {
+    weatherBody = (
+      <>
+        <div className={styles.weatherSection}>
+          <span className={styles.weatherIcon}>{getWeatherIcon(weather?.weather?.[0]?.main)}</span>
+          <span className={styles.temperature}>{Math.round(weather?.main?.temp)}°</span>
+          <span className={styles.weatherDescription}>{weather?.weather?.[0]?.description}</span>
+        </div>
+        <div className={styles.additionalInfo}>
+          <div className={styles.infoItem}>
+            <span className={styles.infoLabel}>습도</span>
+            <span className={styles.infoValue}>{weather?.main?.humidity}%</span>
+          </div>
+          <div className={styles.infoItem}>
+            <span className={styles.infoLabel}>풍속</span>
+            <span className={styles.infoValue}>{weather?.wind?.speed} m/s</span>
+          </div>
+          <div className={styles.infoItem}>
+            <span className={styles.infoLabel}>풍향</span>
+            <span className={styles.infoValue}>{getWindDirection(weather?.wind?.direction)}</span>
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -162,36 +178,12 @@ export default function WeatherCard() {
     <div className={styles.weatherCard}>
       <div className={styles.timeSection}>
         <div className={styles.time}>{formatTime(currentTime)}</div>
-        <div className={styles.date}>{formatDate(currentTime)}</div>
-        <div className={styles.location}>📍 {location}</div>
-      </div>
-      
-      <div className={styles.weatherSection}>
-        <div className={styles.weatherIcon}>
-          {getWeatherIcon(weather?.weather[0]?.main)}
-        </div>
-        <div className={styles.temperature}>
-          {Math.round(weather?.main?.temp)}°
-        </div>
-        <div className={styles.weatherDescription}>
-          {weather?.weather[0]?.description}
+        <div className={styles.dateRow}>
+          <span>{formatDate(currentTime)}</span>
+          {location && <span className={styles.location}>📍 {location}</span>}
         </div>
       </div>
-      
-      <div className={styles.additionalInfo}>
-        <div className={styles.infoItem}>
-          <span className={styles.infoLabel}>습도</span>
-          <span className={styles.infoValue}>{weather?.main?.humidity}%</span>
-        </div>
-        <div className={styles.infoItem}>
-          <span className={styles.infoLabel}>풍속</span>
-          <span className={styles.infoValue}>{weather?.wind?.speed}m/s</span>
-        </div>
-        <div className={styles.infoItem}>
-          <span className={styles.infoLabel}>풍향</span>
-          <span className={styles.infoValue}>{getWindDirection(weather?.wind?.direction)}</span>
-        </div>
-      </div>
+      {weatherBody}
     </div>
   );
-} 
+}

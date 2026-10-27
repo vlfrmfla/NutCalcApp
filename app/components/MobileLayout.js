@@ -6,6 +6,15 @@ import Link from "next/link";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 
+const NAV_ITEMS = [
+  { href: "/", label: "대시보드", match: ["/", "/dashboard"] },
+  { href: "/display", label: "급배액 관리" },
+  { href: "/select", label: "양액 조성 선택" },
+  { href: "/calculate", label: "양액 조성 계산" },
+  { href: "/datamanagement", label: "데이터 관리" },
+  { href: "/info", label: "사용방법" },
+];
+
 export default function MobileLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
@@ -50,12 +59,15 @@ export default function MobileLayout({ children }) {
       <aside className={`sidebar ${isSidebarOpen ? "open" : ""}`}>
         <nav>
           <ul>
-            <li><Link href="/dashboard">대시보드</Link></li>
-            <li><Link href="/display">급배액 관리</Link></li>
-            <li><Link href="/select">양액 조성 선택</Link></li>
-            <li><Link href="/calculate">양액 조성 계산</Link></li>
-            <li><Link href="/datamanagement">데이터 관리</Link></li>
-            <li><Link href="/info">사용방법</Link></li>
+            {NAV_ITEMS.map((item) => {
+              const targets = item.match || [item.href];
+              const active = targets.some((t) => pathname === t || (t !== "/" && pathname.startsWith(t + "/")));
+              return (
+                <li key={item.href} className={active ? "active" : ""}>
+                  <Link href={item.href}>{item.label}</Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
       </aside>

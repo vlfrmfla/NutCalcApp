@@ -2,11 +2,14 @@
   padding: 20px;
   max-width: 1400px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 /* Guide Styles */
 .guide-container {
-  margin-bottom: 20px;
+  margin: 0;
 }
 
 .guide-toggle {
@@ -66,14 +69,60 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  gap: 16px;
+  margin-top: 6px;
 }
 
 .dashboard-header h1 {
   margin: 0;
   font-size: 22px;
   font-weight: 700;
-  color: #333;
+  color: #2c3e50;
+  letter-spacing: -0.01em;
+}
+
+.dashboard-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #8a949e;
+}
+
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #eef0f3;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #8a949e;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2c3e50;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-value small {
+  font-size: 13px;
+  font-weight: 500;
+  color: #8a949e;
+  margin-left: 3px;
 }
 
 .add-btn {
@@ -108,19 +157,37 @@
 .compartments-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   text-align: center;
-  padding: 60px 20px;
-  background: #fafafa;
-  border-radius: 12px;
-  color: #888;
+  padding: 56px 20px;
+  background: #fff;
+  border: 1px dashed #d9dde3;
+  border-radius: 14px;
+  color: #8a949e;
+  font-size: 14px;
 }
 
 .empty-state p {
-  margin: 8px 0;
+  margin: 0;
+  max-width: 420px;
+  line-height: 1.6;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.empty-state .add-btn {
+  margin-top: 12px;
 }
 
 /* Modal Styles */
@@ -259,6 +326,14 @@
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
+  }
+
+  .stat-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stat-value {
+    font-size: 20px;
   }
 
   .dashboard-header h1 {

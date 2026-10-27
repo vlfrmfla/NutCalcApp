@@ -10,15 +10,22 @@ export default function CompartmentCard({ compartment, index, onClick, onEdit, o
     dailyRecords = [],
   } = compartment;
 
-  // 최신 기록 가져오기
+  // 최신 기록 (날짜 기준)
   const latestRecord = dailyRecords.length > 0
-    ? dailyRecords[dailyRecords.length - 1]
+    ? [...dailyRecords].sort((a, b) => new Date(b.date) - new Date(a.date))[0]
     : null;
+
+  const fmt = (value, digits) => {
+    const n = Number(value);
+    return value == null || value === "" || !Number.isFinite(n) ? "-" : n.toFixed(digits);
+  };
 
   // 배액률 계산
   const getDrainRate = () => {
-    if (!latestRecord?.supply_amount || latestRecord.supply_amount === 0) return "-";
-    return ((latestRecord.drain_amount / latestRecord.supply_amount) * 100).toFixed(0);
+    const supply = Number(latestRecord?.supply_amount);
+    const drain = Number(latestRecord?.drain_amount);
+    if (!(supply > 0) || !Number.isFinite(drain)) return "-";
+    return ((drain / supply) * 100).toFixed(0);
   };
 
   return (
@@ -27,7 +34,7 @@ export default function CompartmentCard({ compartment, index, onClick, onEdit, o
         <span className="row-index">{index}</span>
         <div className="row-info">
           <span className="row-name">{name || `Comp ${index}`}</span>
-          <span className="row-crop">{crop || "-"}</span>
+          <span className="row-crop">{crop || "작물 미지정"} · {latestRecord?.date ? `최근 기록 ${latestRecord.date}` : "기록 없음"}</span>
         </div>
         <div className="row-actions">
           <button className="action-btn-sm edit" onClick={onEdit} title="수정">
@@ -42,32 +49,32 @@ export default function CompartmentCard({ compartment, index, onClick, onEdit, o
       <div className="row-metrics">
         <div className="metric-box supply-ec">
           <span className="metric-label">급액EC</span>
-          <span className="metric-value">{latestRecord?.supply_ec?.toFixed(1) || "-"}</span>
+          <span className="metric-value">{fmt(latestRecord?.supply_ec, 1)}</span>
           <span className="metric-unit">dS/m</span>
         </div>
         <div className="metric-box supply-ph">
           <span className="metric-label">급액pH</span>
-          <span className="metric-value">{latestRecord?.supply_ph?.toFixed(1) || "-"}</span>
+          <span className="metric-value">{fmt(latestRecord?.supply_ph, 1)}</span>
           <span className="metric-unit"></span>
         </div>
         <div className="metric-box drain-ec">
           <span className="metric-label">배액EC</span>
-          <span className="metric-value">{latestRecord?.drain_ec?.toFixed(1) || "-"}</span>
+          <span className="metric-value">{fmt(latestRecord?.drain_ec, 1)}</span>
           <span className="metric-unit">dS/m</span>
         </div>
         <div className="metric-box drain-ph">
           <span className="metric-label">배액pH</span>
-          <span className="metric-value">{latestRecord?.drain_ph?.toFixed(1) || "-"}</span>
+          <span className="metric-value">{fmt(latestRecord?.drain_ph, 1)}</span>
           <span className="metric-unit"></span>
         </div>
         <div className="metric-box supply-amt">
           <span className="metric-label">급액량</span>
-          <span className="metric-value">{latestRecord?.supply_amount?.toFixed(0) || "-"}</span>
+          <span className="metric-value">{fmt(latestRecord?.supply_amount, 0)}</span>
           <span className="metric-unit">L</span>
         </div>
         <div className="metric-box drain-amt">
           <span className="metric-label">배액량</span>
-          <span className="metric-value">{latestRecord?.drain_amount?.toFixed(0) || "-"}</span>
+          <span className="metric-value">{fmt(latestRecord?.drain_amount, 0)}</span>
           <span className="metric-unit">L</span>
         </div>
         <div className="metric-box drain-rate">

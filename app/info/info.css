@@ -316,3 +316,49 @@
     padding: 4px 6px;
   }
 }
+
+/* 수록 작물 표 */
+.crop-catalog-wrap {
+  overflow-x: auto;
+  margin: 12px 0 4px;
+}
+
+.crop-catalog {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.crop-catalog th {
+  text-align: left;
+  padding: 8px 10px;
+  background: #f3f4f8;
+  color: #555;
+  font-weight: 600;
+  border-bottom: 1px solid #e3e6ee;
+  white-space: nowrap;
+}
+
+.crop-catalog td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #eef0f3;
+  vertical-align: top;
+  color: #444;
+}
+
+.crop-catalog-crop {
+  font-weight: 700;
+  color: #2c3e50;
+  white-space: nowrap;
+}
+
+.crop-catalog-substrate {
+  white-space: nowrap;
+  color: #666;
+}
+
+.crop-catalog-center {
+  text-align: center;
+  white-space: nowrap;
+}

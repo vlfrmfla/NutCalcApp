@@ -110,6 +110,17 @@ html, body {
   color: #222222;
 }
 
+.sidebar ul li.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.35);
+}
+
+.sidebar ul li.active a,
+.sidebar ul li.active a:hover {
+  color: #ffffff;
+}
+
 .page-content {
   padding-bottom: 60px;
 }
