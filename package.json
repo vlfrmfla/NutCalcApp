@@ -6,7 +6,9 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node --test tests/",
+    "validate:data": "node scripts/validate-compositions.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.13.5",
@@ -17,10 +19,8 @@
     "@nivo/core": "^0.87.0",
     "@nivo/line": "^0.87.0",
     "@supabase/supabase-js": "^2.50.4",
-    "better-sqlite3": "^12.2.0",
     "date-fns": "^2.29.3",
     "next": "14.2.15",
-    "next-auth": "^4.24.11",
     "react": "^18",
     "react-dom": "^18",
     "xlsx": "^0.18.5"

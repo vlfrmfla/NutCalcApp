@@ -1,9 +1,9 @@
 "use client";
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/utils/supabaseClient";
 import { fetchWithAuth } from "@/utils/apiClient";
 
-// 기본 데이터 정의 (로그인 전 표시용)
+// 로그인 전 표시용 더미 샘플
 const initialData = [
   {
     id: 1,
@@ -16,7 +16,7 @@ const initialData = [
     PO4: 0,
     K: 0.12,
     Ca: 0.29,
-    Mg: 0.40,
+    Mg: 0.4,
     SO4: 0.35,
     Cl: 0.46,
     Na: 0,
@@ -30,174 +30,187 @@ const initialData = [
   },
 ];
 
+const SELECTION_KEY = "nutApp_selections";
+const SETTINGS_KEY = "nutApp_calcSettings";
+const GUIDE_KEY = "nutApp_showGuide";
+
+export const DEFAULT_SETTINGS = {
+  recirculationMode: "비순환식", // "비순환식" | "순환식"
+  drainMixRatio: 30, // 순환식: 급액 중 배액 비율 (%)
+  applyDrainCorrection: false, // 순환식: 배액 분석 기반 표준 조성 보정
+  hco3Target: 0.5, // 급액에 남길 HCO3 (mmol/L)
+  neutralizationType: "질산", // "질산" | "인산"
+  phosphateType: "제일인산칼륨", // "제일인산칼륨" | "제일인산암모늄"
+  nitrogenSource: "4수염", // "4수염" | "10수염"
+  feSource: "Fe-DTPA", // "Fe-DTPA" | "Fe-EDTA" | "Fe-EDDHA"
+  clSource: "none", // "none" | "CaCl2" (표준 조성의 Cl을 염화칼슘으로 공급)
+  concentration: 100, // 원액 농축 배율
+  tankVolume: 1000, // 원액 탱크 용량 (L)
+  supplyEC: null, // 급액 EC (dS/m). null이면 자동
+};
+
 export const DataContext = createContext();
 
+function withDate(item) {
+  return { ...item, date: item.date instanceof Date ? item.date : new Date(item.date || Date.now()) };
+}
 
 export function DataProvider({ children }) {
   const [data, setDataState] = useState(initialData);
-
-  // 안전한 데이터 설정 함수
-  const setData = (newData) => {
-    console.log("=== DataContext setData 호출 ===");
-    console.log("새로운 데이터:", newData);
-    const processedData = Array.isArray(newData) 
-      ? newData.map(item => ({
-          ...item,
-          date: item.date instanceof Date ? item.date : new Date(item.date || Date.now())
-        }))
-      : newData;
-    console.log("처리된 데이터:", processedData);
-    setDataState(processedData);
-  };
   const [nutrientData, setNutrientData] = useState(null);
+  const [targetDrainData, setTargetDrainData] = useState(null);
 
-  // 사용자가 선택한 작물, 배지, 조성, 원수, 배액 조성, 중탄산 농도, 인산비료 종류, tank volume
   const [selectedCrop, setSelectedCrop] = useState("");
   const [selectedSubstrate, setSelectedSubstrate] = useState("");
   const [selectedComposition, setSelectedComposition] = useState("");
-  const [selectedWaterSource, setSelectedWaterSource] = useState("");
-  const [selectedDrainSource, setSelectedDrainSource] = useState("");
-  const [hco3, setHco3] = useState(0.5); // 기본값 0.5
-  const [neutralizationType, setNeutralizationType] = useState("질산"); // "질산" 또는 "인산"
-  const [phosphateType, setPhosphateType] = useState("제일인산칼륨"); // "제일인산암모늄" 또는 "제일인산칼륨"
-  const [tankVolume, setTankVolume] = useState(1000);   // 양액탱크 용량 (L)
-
-  // 사용자 설정: 가이드라인 표시 여부
+  const [selectedWaterSourceId, setSelectedWaterSourceId] = useState("");
+  const [selectedDrainSourceId, setSelectedDrainSourceId] = useState("");
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [showGuide, setShowGuide] = useState(true);
+  const [hydrated, setHydrated] = useState(false);
 
+  const setData = useCallback((rows) => {
+    setDataState(Array.isArray(rows) ? rows.map(withDate) : rows);
+  }, []);
 
-  // 로그인 상태에 따른 데이터 로딩
+  const updateSettings = useCallback((patch) => {
+    setSettings((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  // 로그인 상태에 따라 샘플 데이터 로드
   useEffect(() => {
     const fetchSamples = async () => {
       try {
-        console.log("=== DataContext에서 samples 데이터 로딩 ===");
         const rows = await fetchWithAuth("/api/samples");
-        console.log("API에서 가져온 데이터:", rows);
         setData(rows);
       } catch (err) {
-        console.error("DataContext 데이터 로드 실패:", err.message);
-        console.log("더미 데이터 유지");
+        console.error("샘플 데이터 로드 실패:", err.message);
       }
     };
 
-    // 초기 세션 확인
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("DataContext 초기 세션:", session?.user?.id || "없음");
-      if (session) {
-        fetchSamples();
-      }
-    });
-
-    // 로그인/로그아웃 감지
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("DataContext 세션 변화:", _event, session?.user?.id || "없음");
-      if (session) {
-        fetchSamples();
-      } else {
-        // 로그아웃 시 더미 데이터로 리셋
-        console.log("로그아웃 - 더미 데이터로 리셋");
+    // onAuthStateChange는 구독 직후 INITIAL_SESSION을 보내므로 getSession을 따로 부르지 않는다
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
         setDataState(initialData);
+        return;
       }
+      if (event === "INITIAL_SESSION" || event === "SIGNED_IN") fetchSamples();
     });
 
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
-  }, []);
+    return () => listener?.subscription.unsubscribe();
+  }, [setData]);
 
-  // nutrientData fetch (앱 시작 시 1회)
+  // 표준 조성과 목표 배액 데이터 (앱 시작 시 1회)
   useEffect(() => {
     fetch("/nutrient_solution.json")
-      .then(res => res.json())
-      .then(setNutrientData);
+      .then((res) => res.json())
+      .then(setNutrientData)
+      .catch((err) => console.error("표준 조성 로드 실패:", err));
+    fetch("/target_drain.json")
+      .then((res) => res.json())
+      .then(setTargetDrainData)
+      .catch((err) => console.error("목표 배액 로드 실패:", err));
   }, []);
 
-  // DataContext에서 로컬스토리지에 저장/복원
+  // 로컬스토리지 복원 (1회)
   useEffect(() => {
-    const saved = localStorage.getItem('nutApp_selections');
-    if (saved) {
-      try {
-        const { crop, substrate, composition, waterSource } = JSON.parse(saved);
-        // 빈 문자열이 아닌 경우에만 복원
-        if (crop) setSelectedCrop(crop);
-        if (substrate) setSelectedSubstrate(substrate);
-        if (composition) setSelectedComposition(composition);
-        if (waterSource) setSelectedWaterSource(waterSource);
-      } catch (error) {
-        console.error("로컬스토리지 복원 에러:", error);
+    try {
+      const saved = JSON.parse(localStorage.getItem(SELECTION_KEY) || "{}");
+      if (saved.crop) setSelectedCrop(saved.crop);
+      if (saved.substrate) setSelectedSubstrate(saved.substrate);
+      if (saved.composition) setSelectedComposition(saved.composition);
+      if (saved.waterSourceId) setSelectedWaterSourceId(String(saved.waterSourceId));
+      if (saved.drainSourceId) setSelectedDrainSourceId(String(saved.drainSourceId));
+      const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
+      if (savedSettings && typeof savedSettings === "object") {
+        setSettings({ ...DEFAULT_SETTINGS, ...savedSettings });
       }
+      const savedGuide = localStorage.getItem(GUIDE_KEY);
+      if (savedGuide !== null) setShowGuide(savedGuide === "true");
+    } catch (err) {
+      console.error("로컬스토리지 복원 실패:", err);
     }
-    // 가이드라인 설정 복원
-    const savedGuide = localStorage.getItem('nutApp_showGuide');
-    if (savedGuide !== null) {
-      setShowGuide(savedGuide === 'true');
-    }
+    setHydrated(true);
   }, []);
 
+  // 복원이 끝난 뒤에만 저장 (기본값으로 덮어쓰기 방지)
   useEffect(() => {
-    // 모든 값이 빈 문자열이 아닐 때만 저장
-    if (selectedCrop || selectedSubstrate || selectedComposition || selectedWaterSource) {
-      localStorage.setItem('nutApp_selections', JSON.stringify({
-        crop: selectedCrop,
-        substrate: selectedSubstrate,
-        composition: selectedComposition,
-        waterSource: selectedWaterSource
-      }));
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(
+        SELECTION_KEY,
+        JSON.stringify({
+          crop: selectedCrop,
+          substrate: selectedSubstrate,
+          composition: selectedComposition,
+          waterSourceId: selectedWaterSourceId,
+          drainSourceId: selectedDrainSourceId,
+        })
+      );
+    } catch (err) {
+      console.error("로컬스토리지 저장 실패:", err);
     }
-  }, [selectedCrop, selectedSubstrate, selectedComposition, selectedWaterSource]);
+  }, [hydrated, selectedCrop, selectedSubstrate, selectedComposition, selectedWaterSourceId, selectedDrainSourceId]);
 
-  // 가이드라인 설정 저장
   useEffect(() => {
-    localStorage.setItem('nutApp_showGuide', showGuide.toString());
-  }, [showGuide]);
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      localStorage.setItem(GUIDE_KEY, showGuide.toString());
+    } catch (err) {
+      console.error("로컬스토리지 저장 실패:", err);
+    }
+  }, [hydrated, settings, showGuide]);
 
-  // 데이터 추가 함수
-  const addData = (newEntry) => {
-    // 날짜가 없는 경우 현재 날짜를 추가
-    const entryWithDate = {
-      ...newEntry,
-      date: newEntry.date instanceof Date ? newEntry.date : new Date(newEntry.date || Date.now())
-    };
-    setData([...data, entryWithDate]);
-  };
-
-  // 데이터 삭제 함수
-  const deleteData = (id) => {
-    setData(data.filter((item) => item.id !== id));
-  };
-
-  return (
-    <DataContext.Provider
-      value={{
-        data,
-        setData, // setData를 외부에서 사용할 수 있도록 추가
-        addData,
-        deleteData,
-        selectedCrop,
-        setSelectedCrop,
-        selectedSubstrate,
-        setSelectedSubstrate,
-        selectedComposition,
-        setSelectedComposition,
-        selectedWaterSource,
-        setSelectedWaterSource,
-        selectedDrainSource,
-        setSelectedDrainSource,
-        tankVolume,
-        setTankVolume, // ✅ 전역 공유
-        nutrientData,
-        setNutrientData,
-        hco3,
-        setHco3,
-        neutralizationType,
-        setNeutralizationType,
-        phosphateType,
-        setPhosphateType,
-        showGuide,
-        setShowGuide,
-      }}
-    >
-      {children}
-    </DataContext.Provider>
+  // 파생값
+  const compositionDetails = useMemo(
+    () => nutrientData?.[selectedCrop]?.[selectedSubstrate]?.[selectedComposition] || null,
+    [nutrientData, selectedCrop, selectedSubstrate, selectedComposition]
   );
+  const waterSource = useMemo(
+    () => data.find((d) => String(d.id) === String(selectedWaterSourceId)) || null,
+    [data, selectedWaterSourceId]
+  );
+  const drainSource = useMemo(
+    () => data.find((d) => String(d.id) === String(selectedDrainSourceId)) || null,
+    [data, selectedDrainSourceId]
+  );
+  // 작물별 배액 보정표 { naMax, 비순환식: {...}, 순환식: {...} }
+  const drainTables = useMemo(() => targetDrainData?.[selectedCrop] || null, [targetDrainData, selectedCrop]);
+
+  const value = useMemo(
+    () => ({
+      data,
+      setData,
+      nutrientData,
+      targetDrainData,
+      selectedCrop,
+      setSelectedCrop,
+      selectedSubstrate,
+      setSelectedSubstrate,
+      selectedComposition,
+      setSelectedComposition,
+      selectedWaterSourceId,
+      setSelectedWaterSourceId,
+      selectedDrainSourceId,
+      setSelectedDrainSourceId,
+      settings,
+      updateSettings,
+      showGuide,
+      setShowGuide,
+      compositionDetails,
+      waterSource,
+      drainSource,
+      drainTables,
+    }),
+    [
+      data, setData, nutrientData, targetDrainData,
+      selectedCrop, selectedSubstrate, selectedComposition,
+      selectedWaterSourceId, selectedDrainSourceId,
+      settings, updateSettings, showGuide,
+      compositionDetails, waterSource, drainSource, drainTables,
+    ]
+  );
+
+  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }

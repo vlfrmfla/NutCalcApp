@@ -153,14 +153,17 @@ export default function InfoPage() {
           <h5 className="info-step-subtitle">1. 순환 방식 선택</h5>
           <ul className="info-step-list">
             <li><strong>비순환식</strong>: 배액을 배출하는 방식 (기본)</li>
-            <li><strong>순환식</strong>: 배액을 재활용하는 방식 (개발 중)</li>
+            <li><strong>순환식</strong>: 배액을 원수와 섞어 재사용하는 방식. 배액 조성과 혼합 비율을 고르면 혼합수를 기준으로 계산합니다.</li>
+            <li><strong>배액(근권) 분석 보정</strong>: 두 방식 모두에서 배액 분석값을 고르고 스위치를 켜면 네덜란드 Bemestings Adviesbasis(1999)의 등급표에 따라 표준 조성을 보정합니다. 비순환식은 자유배액 표, 순환식은 폐쇄계 표를 쓰며 토마토, 파프리카, 오이, 가지, 장미, 거베라 표가 들어 있습니다.</li>
           </ul>
         </div>
 
         <div className="info-step-box">
           <h5 className="info-step-subtitle">2. 조성 선택 단계</h5>
           <ol className="info-step-list">
-            <li><strong>작물 선택</strong>: 재배할 작물 선택 (토마토, 파프리카, 딸기 등)</li>
+            <li><strong>작물 선택</strong>: 재배할 작물 선택 (토마토, 파프리카, 오이, 가지, 멜론, 딸기, 베리류, 엽채류, 허브, 절화·분화류 등 21작물)</li>
+            <li><strong>배지 선택</strong>: 암면배지(불활성), 코이어배지(유기), 유기배지(피트), 순수수경. 2020 자료의 Inert substrate / Organic material 표준에 해당합니다</li>
+            <li><strong>생육 단계</strong>: 표준양액과 2020 자료의 조정 조성(정식초기(Start), 착과기(Fruit set), 다량급액(High water), 재배후기(End season), 개화기(Flowering) 등). 토마토는 1999 자료의 화방별 조정도 있습니다. 선택하면 출처가 아래에 표시됩니다</li>
             <li><strong>배지 선택</strong>: 사용하는 배지 종류 선택 (암면, 코코피트 등)</li>
             <li><strong>표준 양액 조성</strong>: 생육 단계에 맞는 양액 조성 선택</li>
             <li><strong>원수 조성</strong>: 데이터 관리에서 입력한 원수 데이터 선택</li>
@@ -175,7 +178,7 @@ export default function InfoPage() {
           <ul className="info-step-list">
             <li><strong>표준 조성</strong>: 선택한 작물의 기준 양액 조성</li>
             <li><strong>원수 조성</strong>: 사용하는 원수의 이온 농도</li>
-            <li><strong>목표 조성</strong>: 표준 조성 - 원수 조성 (비료로 보충해야 할 양)</li>
+            <li><strong>추가 필요량</strong>: 표준 조성 − 기준수(원수 또는 혼합수). 비료로 보충해야 할 양이며 음수는 0으로 처리하고 경고로 알립니다.</li>
           </ul>
         </div>
 
@@ -202,15 +205,16 @@ export default function InfoPage() {
             <li><strong>질소비료</strong>: 4수염 또는 10수염 질산칼슘 선택</li>
             <li><strong>인산비료</strong>: 제일인산칼륨 또는 제일인산암모늄 선택</li>
             <li><strong>Fe 비료</strong>: DTPA, EDTA, EDDHA 중 선택</li>
-            <li><strong>중화 방식</strong>: 질산(60%) 또는 인산(85.5%) 선택</li>
+            <li><strong>Cl 공급</strong>: 표준 조성에 Cl이 있을 때 염화칼슘으로 공급할지 선택 (기본은 공급 안 함, NO₃로 대체)</li>
+            <li><strong>중화 방식</strong>: 질산(60%) 또는 인산(85%) 선택. 인산으로 중화하면 그만큼 제일인산칼륨을 줄입니다</li>
           </ul>
         </div>
 
         <div className="info-step-box">
           <h5 className="info-step-subtitle">2. 설정값 입력</h5>
           <ul className="info-step-list">
-            <li><strong>중탄산(HCO₃⁻) 목표값</strong>: 배양액 내 목표 HCO₃ 농도 (기본: 0.5 mmol/L)</li>
-            <li><strong>급액 EC</strong>: 목표 급액 EC (원수 + 목표 조성에서 자동 계산)</li>
+            <li><strong>남길 HCO₃⁻</strong>: 급액에 남길 중탄산 농도 (기본 0.5 mmol/L). 기준수 HCO₃에서 이 값을 뺀 만큼 산으로 중화합니다</li>
+            <li><strong>급액 EC</strong>: 비워 두면 기준수 + 표준 조성 EC로 자동 계산. 값을 넣으면 NH₄를 제외한 추가량을 비례 조정합니다</li>
             <li><strong>농도</strong>: 원액 희석 배율 (50배, 100배, 200배)</li>
             <li><strong>양액탱크 용량</strong>: A, B 탱크 용량 (L)</li>
           </ul>
@@ -219,12 +223,13 @@ export default function InfoPage() {
         <div className="info-step-box">
           <h5 className="info-step-subtitle">3. 계산 결과</h5>
           <p className="info-step-description">
-            &quot;계산하기&quot; 버튼을 누르면:
+            조성과 원수를 선택하면 바로 계산됩니다:
           </p>
           <ul className="info-step-list">
-            <li>상단 테이블에서 목표 조성과 비료 계산 결과 비교 확인</li>
-            <li><strong>A Tank 구성</strong>: 질산칼슘, 질산칼륨, 질산암모늄, Fe 비료 투입량</li>
-            <li><strong>B Tank 구성</strong>: 인산칼륨, 황산마그네슘, 황산칼륨, 미량원소 투입량</li>
+            <li>상단 테이블에서 표준 조성, 기준수, 추가 필요량, 비료 공급량, 최종 급액 조성을 비교</li>
+            <li><strong>A 탱크</strong>: 질산칼슘, 질산암모늄, 질산마그네슘(필요 시), 질산칼륨 일부, Fe 비료</li>
+            <li><strong>B 탱크</strong>: 질산·인산, 질산칼륨, 인산칼륨, 황산마그네슘, 황산칼륨, 미량원소</li>
+            <li>맞출 수 없는 조건(예: SO₄가 Mg보다 적음, K 부족, 10수염의 NH₄ 초과)은 경고로 표시되고 비료량은 음수가 되지 않습니다</li>
           </ul>
         </div>
 
@@ -256,7 +261,7 @@ export default function InfoPage() {
           <h5 className="info-step-subtitle">2. 단위 설정</h5>
           <ul className="info-step-list">
             <li><strong>몰 단위</strong>: 다량원소 mmol/L, 미량원소 μmol/L (기본값, 권장)</li>
-            <li><strong>질량 단위</strong>: mg/L로 입력 시 자동 변환 저장</li>
+            <li><strong>질량 단위</strong>: mg/L로 입력하거나 업로드하면 N, P, S 원소 기준으로 몰 단위로 변환해 저장</li>
           </ul>
         </div>
 

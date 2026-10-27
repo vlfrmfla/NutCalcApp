@@ -89,7 +89,10 @@ function CompositionDataForm({ newEntry, handleChange, fields, unitMode, molarMa
     if (fieldName === 'EC') return 'dS/m';
     if (fieldName === 'pH') return ''; // pH는 단위 없음
     
-    if (unitMode === 'mass') return 'mg/L';
+    if (unitMode === 'mass') {
+      const basis = { NH4: 'N', NO3: 'N', PO4: 'P', SO4: 'S' }[fieldName];
+      return basis ? `mg/L, ${basis} 기준` : 'mg/L';
+    }
     
     // 몰 단위일 때
     if (macroElements.includes(fieldName)) return 'mmol/L';
@@ -180,7 +183,6 @@ export default function DataManagement() {
       // 시트를 JSON으로 변환
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
       
-      console.log('Excel 데이터:', jsonData);
       return jsonData;
     } catch (error) {
       console.error('Excel 파일 읽기 실패:', error);
@@ -221,7 +223,6 @@ export default function DataManagement() {
     const data = { ...INITIAL_ENTRY };
     
     try {
-      console.log('Excel 원본 데이터:', excelData);
 
       // 시료명 찾기 - 더 구체적인 패턴 매칭
       let sampleName = '';
@@ -231,7 +232,6 @@ export default function DataManagement() {
           const cell = String(row[j] || '').trim();
           if (cell.includes('시료명') && row[j + 1]) {
             sampleName = String(row[j + 1]).trim();
-            console.log('시료명 발견:', sampleName);
             break;
           }
         }
@@ -256,7 +256,6 @@ export default function DataManagement() {
             if (dateMatch) {
               const [, year, month, day] = dateMatch;
               data.date = new Date(year, month - 1, day);
-              console.log('날짜 발견:', data.date);
               break;
             }
           }
@@ -284,7 +283,6 @@ export default function DataManagement() {
                   
                   const value = parseFloat(cellValue);
                   if (!isNaN(value) && value >= 0) {
-                    console.log(`${name} 값 발견:`, cellValue, '→', value);
                     return value;
                   }
                 }
@@ -319,7 +317,6 @@ export default function DataManagement() {
       data.Cu = findValueByName(['구리(Cu)', '구리', 'Cu']);
       data.Mo = findValueByName(['몰리브덴(Mo)', '몰리브덴', 'Mo']);
 
-      console.log('파싱된 데이터:', data);
       return data;
       
     } catch (error) {
@@ -345,10 +342,19 @@ export default function DataManagement() {
 
     setUploading(true);
     try {
-      console.log('Excel 처리 시작:', file.name);
       const excelData = await extractDataFromExcel(file);
       const parsedData = parseExcelData(excelData);
-      
+
+      // 성적서 값이 mg/L이면(질량 단위 모드) 저장 단위인 몰 단위로 변환
+      if (unitMode === 'mass') {
+        for (const name of Object.keys(molarMasses)) {
+          const v = parsedData[name];
+          if (v !== "" && v !== null && !isNaN(v)) {
+            parsedData[name] = convertUnits(parseFloat(v), name, 'mass', 'molar');
+          }
+        }
+      }
+
       // 파싱된 데이터를 폼에 자동 입력
       setNewEntry(parsedData);
       
@@ -357,7 +363,7 @@ export default function DataManagement() {
         .filter(([key, value]) => key !== 'id' && value !== "" && value !== null)
         .length;
       
-      alert(`Excel 데이터가 성공적으로 추출되었습니다!\n추출된 필드: ${extractedFields}개\n확인 후 저장해주세요.`);
+      alert(`Excel 데이터가 성공적으로 추출되었습니다!\n추출된 필드: ${extractedFields}개\n성적서 단위를 ${unitMode === 'mass' ? 'mg/L로 보고 몰 단위로 변환했습니다' : '몰 단위(mmol/L, µmol/L)로 보고 그대로 넣었습니다'}.\n확인 후 저장해주세요.`);
       
     } catch (error) {
       console.error('Excel 처리 실패:', error);
@@ -389,7 +395,6 @@ export default function DataManagement() {
     if (unitMode === 'mass' && value !== '' && !isNaN(value) && name !== 'EC' && name !== 'pH') {
       if (molarMasses[name]) {
         processedValue = convertUnits(parseFloat(value), name, 'mass', 'molar');
-        console.log(`${name}: ${value} mg/L → ${processedValue} ${microElements.includes(name) ? 'μmol/L' : 'mmol/L'}`);
       }
     }
     
@@ -613,8 +618,8 @@ export default function DataManagement() {
             lineHeight: 1.2,
           }}
         >
-          Disclaimer : 데이터관리 탭에서는 원수나 배액 조성을 입력할 수 있습니다. 입력된 데이터는 양액조성선택 탭에서 원수나 배액 조성으로 선택할 수 있게 됩니다. 따라서 해당 데이터를 입력해놓으면 양액조성선택 탭에서 불러와서 사용할 수 있습니다. 단위는 기본적으로 몰 단위를 사용합니다.
-          만약 mg/L 단위로 입력하고 싶다면 입력 후 mol 단위로 변환(몰 단위 버튼 클릭)하여 데이터 추가버튼을 눌러주시면 됩니다.
+          원수나 배액 분석 결과를 저장하면 양액 조성 선택 탭에서 원수·배액으로 고를 수 있습니다. 저장 단위는 항상 다량원소 mmol/L, 미량원소 µmol/L입니다.
+          성적서가 mg/L이면 먼저 &quot;질량 단위&quot;를 누른 뒤 입력하거나 업로드하세요. 그러면 N, P, S 원소 기준(NO₃·NH₄는 N, PO₄는 P, SO₄는 S)으로 몰 단위로 바꿔 저장합니다. 성적서가 이온 기준(NO₃⁻ mg/L 등)이면 값이 달라지니 단위 표기를 확인하세요.
         </Typography>
         
         {/* Excel 업로드 버튼 */}
@@ -645,7 +650,7 @@ export default function DataManagement() {
             </Button>
           </label>
           <Typography variant="caption" color="textSecondary">
-            Excel 형태의 양액 분석성적서를 업로드하면 자동으로 데이터가 입력됩니다.
+            Excel 분석성적서를 업로드하면 항목을 찾아 자동 입력합니다. 성적서 단위에 맞춰 아래 입력 단위를 먼저 고르세요.
           </Typography>
         </Box>
 

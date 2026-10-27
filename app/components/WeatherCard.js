@@ -8,53 +8,14 @@ export default function WeatherCard() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // 위도/경도를 상세주소로 변환하는 함수
+  // 위도/경도를 상세주소로 변환 (서버 라우트가 카카오 API를 호출한다)
   const getAddressFromCoords = async (lat, lon) => {
     try {
-      // 카카오 REST API를 사용한 역지오코딩으로 상세주소 가져오기
-      const KAKAO_API_KEY = '09e9d799bee81eb350d56445e90d05b1';
-      
-      if (KAKAO_API_KEY) {
-        const kakaoResponse = await fetch(
-          `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lon}&y=${lat}&input_coord=WGS84`,
-          {
-            headers: {
-              'Authorization': `KakaoAK ${KAKAO_API_KEY}`
-            }
-          }
-        );
-        
-        if (kakaoResponse.ok) {
-          const kakaoData = await kakaoResponse.json();
-          console.log('카카오 역지오코딩 응답:', kakaoData);
-          
-          if (kakaoData.documents && kakaoData.documents.length > 0) {
-            const result = kakaoData.documents[0];
-            
-            // 도로명 주소가 있으면 우선 사용
-            if (result.road_address) {
-              const roadAddress = result.road_address;
-              return `${roadAddress.region_1depth_name} ${roadAddress.region_2depth_name} ${roadAddress.region_3depth_name} ${roadAddress.road_name} ${roadAddress.main_building_no}${roadAddress.sub_building_no ? '-' + roadAddress.sub_building_no : ''}`;
-            }
-            
-            // 지번 주소 사용
-            if (result.address) {
-              const address = result.address;
-              return `${address.region_1depth_name} ${address.region_2depth_name} ${address.region_3depth_name} ${address.main_address_no}${address.sub_address_no ? '-' + address.sub_address_no : ''}`;
-            }
-          }
-        }
-      }
-      
-      // 카카오 API 실패 시 기본 API 사용
       const response = await fetch(`/api/geocoding?lat=${lat}&lon=${lon}`);
       if (response.ok) {
         const data = await response.json();
-        if (data.success && data.address) {
-          return data.address;
-        }
+        if (data.success && data.address) return data.address;
       }
-      
       return '현재위치';
     } catch (error) {
       console.error('주소 변환 오류:', error);
@@ -100,7 +61,6 @@ export default function WeatherCard() {
               }
               
               const data = await weatherResponse.json();
-              console.log('날씨 API 응답:', data);
               
               if (data.success) {
                 setWeather(data.data);
