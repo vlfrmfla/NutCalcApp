@@ -1,0 +1,194 @@
+/* 일일 기록 모달 (RecordModal) - 다른 페이지의 modal/form 클래스와 겹치지 않도록 rm- 접두어 사용 */
+.rm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.rm-dialog {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.rm-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+}
+
+.rm-sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #8a949e;
+}
+
+.rm-title + form,
+.rm-sub + form {
+  margin-top: 20px;
+}
+
+.rm-field {
+  margin-bottom: 12px;
+}
+
+.rm-field label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #555;
+}
+
+.rm-field input,
+.rm-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.rm-field textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.rm-field input:focus,
+.rm-field textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.rm-field input::placeholder,
+.rm-field textarea::placeholder {
+  color: #bbb;
+}
+
+.rm-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.rm-section {
+  font-size: 12px;
+  font-weight: 700;
+  margin: 16px 0 8px 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.rm-section-supply {
+  color: #1e88e5;
+}
+
+.rm-section-drain {
+  color: #fb8c00;
+}
+
+.rm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.rm-btn-cancel,
+.rm-btn-save {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rm-btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.rm-btn-cancel:hover {
+  background: #eee;
+}
+
+.rm-btn-save {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.rm-btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Mobile: 아래에서 올라오는 시트 형태 */
+@media (max-width: 768px) {
+  .rm-overlay {
+    padding: 12px;
+    align-items: flex-end;
+  }
+
+  .rm-dialog {
+    padding: 20px;
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .rm-title {
+    font-size: 16px;
+  }
+
+  .rm-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .rm-field label {
+    font-size: 12px;
+  }
+
+  .rm-field input,
+  .rm-field textarea {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .rm-section {
+    font-size: 13px;
+    margin: 12px 0 6px 0;
+  }
+
+  .rm-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .rm-btn-cancel,
+  .rm-btn-save {
+    width: 100%;
+    padding: 14px;
+    font-size: 15px;
+  }
+}

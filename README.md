@@ -21,7 +21,7 @@ app/
   calculate/     비료 투입량 계산 (A/B 탱크)
   datamanagement/ 원수·배액 분석 데이터 입력 (수동, Excel 업로드)
   dashboard/     재배 구역(컴파트먼트)별 급배액 기록
-  display/       급배액 차트
+  display/       급배액 차트(급액·배액 EC/pH, 급배액량)와 기록 추가
   context/DataContext.js   선택값·설정·샘플 데이터 전역 상태 (localStorage 복원)
   hooks/useSupplyPlan.js   선택값과 설정으로 급액 계획 계산
   components/nutrient/     조성 표, 탱크 표, 경고 목록

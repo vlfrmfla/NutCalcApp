@@ -56,7 +56,7 @@ export default function InfoPage() {
           </p>
           <ul className="info-feature-list">
             <li><strong>대시보드</strong>: 재배 구역(컴파트먼트)별 급배액 데이터를 한눈에 관리</li>
-            <li><strong>급배액 관리</strong>: EC, pH, 급배액량 추이를 차트로 시각화</li>
+            <li><strong>급배액 관리</strong>: 급액·배액 EC/pH, 급배액량 추이를 차트로 보고 기록을 바로 추가</li>
             <li><strong>양액 조성 선택</strong>: 작물별 표준 양액 조성 검색 및 목표 조성 계산</li>
             <li><strong>양액 조성 계산</strong>: 비료 투입량 자동 계산 (A/B 탱크 구성)</li>
             <li><strong>데이터 관리</strong>: 원수/배액 분석 데이터 저장 및 관리</li>
@@ -90,6 +90,7 @@ export default function InfoPage() {
           <ul className="info-step-list">
             <li>컴파트먼트 카드를 <strong>클릭</strong>하여 상세 페이지로 이동</li>
             <li>날짜 선택 후 급액 EC/pH, 배액 EC/pH, 급액량, 배액량 입력</li>
+            <li>급배액 관리 페이지의 <strong>&quot;기록 추가&quot;</strong> 버튼으로도 같은 기록을 바로 입력할 수 있습니다</li>
             <li>배액률은 자동 계산됩니다 (배액량 ÷ 급액량 × 100)</li>
             <li>메모란에 특이사항 기록 가능</li>
           </ul>
@@ -122,8 +123,8 @@ export default function InfoPage() {
         <div className="info-step-box">
           <h5 className="info-step-subtitle">차트 구성</h5>
           <ul className="info-step-list">
-            <li><strong>EC/pH 차트</strong>: 배액 EC(좌측 축)와 pH(우측 축)를 이중 축으로 표시</li>
-            <li><strong>급배액량/배액률 차트</strong>: 급액량, 배액량(좌측 축, L)과 배액률(우측 축, %)을 표시</li>
+            <li><strong>EC/pH 차트</strong>: 급액(파란색)·배액(주황색)의 EC는 실선(좌측 축), pH는 점선(우측 축)으로 표시</li>
+            <li><strong>급배액량/배액률 차트</strong>: 급액량, 배액량(좌측 축, L)은 실선, 배액률(우측 축, %)은 점선으로 표시</li>
           </ul>
         </div>
 
@@ -131,13 +132,14 @@ export default function InfoPage() {
           <h5 className="info-step-subtitle">차트 사용법</h5>
           <ul className="info-step-list">
             <li><strong>범례 클릭</strong>: 특정 데이터 시리즈를 숨기거나 표시</li>
-            <li><strong>마우스 호버</strong>: 해당 날짜의 상세 수치 확인</li>
+            <li><strong>마우스 호버</strong>: 해당 날짜의 급액·배액 값을 한 번에 확인</li>
+            <li><strong>기록 추가 / 기록 보기</strong>: 차트 오른쪽 위 버튼으로 기록을 바로 입력하거나 컴파트먼트 상세로 이동</li>
             <li>각 컴파트먼트별로 개별 차트가 표시됩니다</li>
           </ul>
         </div>
 
         <div className="info-tip-box">
-          <strong>Tip:</strong> 급배액 데이터가 없으면 차트가 표시되지 않습니다. 먼저 대시보드에서 데이터를 입력하세요.
+          <strong>Tip:</strong> 기록이 없으면 차트가 비어 있습니다. 각 컴파트먼트의 &quot;기록 추가&quot; 버튼으로 바로 입력할 수 있고, 수정·삭제는 컴파트먼트 상세에서 합니다.
         </div>
       </Section>
 

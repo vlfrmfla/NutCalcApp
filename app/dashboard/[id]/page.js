@@ -7,7 +7,14 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
+import RecordModal from "../../components/RecordModal";
 import "./detail.css";
+
+// 숫자 표시 (0도 "-"가 아니라 값으로)
+const fmt = (value, digits) => {
+  const n = Number(value);
+  return value == null || value === "" || !Number.isFinite(n) ? "-" : n.toFixed(digits);
+};
 
 export default function CompartmentDetailPage() {
   const router = useRouter();
@@ -211,12 +218,12 @@ export default function CompartmentDetailPage() {
                     return (
                       <tr key={record.id}>
                         <td className="date-cell" data-label="날짜">{new Date(record.date).toLocaleDateString("ko-KR")}</td>
-                        <td data-label="급액EC">{record.supply_ec?.toFixed(1) || "-"}</td>
-                        <td data-label="급액pH">{record.supply_ph?.toFixed(1) || "-"}</td>
-                        <td data-label="배액EC">{record.drain_ec?.toFixed(1) || "-"}</td>
-                        <td data-label="배액pH">{record.drain_ph?.toFixed(1) || "-"}</td>
-                        <td data-label="급액량">{record.supply_amount != null ? record.supply_amount.toFixed(1) : "-"}</td>
-                        <td data-label="배액량">{record.drain_amount != null ? record.drain_amount.toFixed(1) : "-"}</td>
+                        <td data-label="급액EC">{fmt(record.supply_ec, 1)}</td>
+                        <td data-label="급액pH">{fmt(record.supply_ph, 1)}</td>
+                        <td data-label="배액EC">{fmt(record.drain_ec, 1)}</td>
+                        <td data-label="배액pH">{fmt(record.drain_ph, 1)}</td>
+                        <td data-label="급액량">{fmt(record.supply_amount, 1)}</td>
+                        <td data-label="배액량">{fmt(record.drain_amount, 1)}</td>
                         <td data-label="배액률">{drainRate != null ? `${drainRate}%` : "-"}</td>
                         <td className="memo-cell" data-label="메모">{record.memo || "-"}</td>
                         <td data-label="">
@@ -248,6 +255,7 @@ export default function CompartmentDetailPage() {
       {(isAddModalOpen || editingRecord) && (
         <RecordModal
           record={editingRecord}
+          compartmentName={compartment.name}
           onSave={editingRecord ? handleEditRecord : handleAddRecord}
           onClose={() => {
             setIsAddModalOpen(false);
@@ -255,143 +263,6 @@ export default function CompartmentDetailPage() {
           }}
         />
       )}
-    </div>
-  );
-}
-
-// 기록 추가/수정 모달
-function RecordModal({ record, onSave, onClose }) {
-  const [formData, setFormData] = useState({
-    date: record?.date || new Date().toISOString().split("T")[0],
-    supply_ec: record?.supply_ec || "",
-    supply_ph: record?.supply_ph || "",
-    drain_ec: record?.drain_ec || "",
-    drain_ph: record?.drain_ph || "",
-    supply_amount: record?.supply_amount || "",
-    drain_amount: record?.drain_amount || "",
-    memo: record?.memo || "",
-  });
-
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const processedData = {
-      ...formData,
-      supply_ec: formData.supply_ec !== "" ? parseFloat(formData.supply_ec) : null,
-      supply_ph: formData.supply_ph !== "" ? parseFloat(formData.supply_ph) : null,
-      drain_ec: formData.drain_ec !== "" ? parseFloat(formData.drain_ec) : null,
-      drain_ph: formData.drain_ph !== "" ? parseFloat(formData.drain_ph) : null,
-      supply_amount: formData.supply_amount !== "" ? parseFloat(formData.supply_amount) : null,
-      drain_amount: formData.drain_amount !== "" ? parseFloat(formData.drain_amount) : null,
-    };
-    onSave(record ? { ...record, ...processedData } : processedData);
-  };
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <h2>{record ? "기록 수정" : "새 기록 추가"}</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>날짜</label>
-            <input
-              type="date"
-              value={formData.date}
-              onChange={e => handleChange("date", e.target.value)}
-            />
-          </div>
-
-          <div className="form-section-label">급액</div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>EC (dS/m)</label>
-              <input
-                type="number"
-                step="0.1"
-                value={formData.supply_ec}
-                onChange={e => handleChange("supply_ec", e.target.value)}
-                placeholder="2.5"
-              />
-            </div>
-            <div className="form-group">
-              <label>pH</label>
-              <input
-                type="number"
-                step="0.1"
-                value={formData.supply_ph}
-                onChange={e => handleChange("supply_ph", e.target.value)}
-                placeholder="5.8"
-              />
-            </div>
-            <div className="form-group">
-              <label>급액량 (L)</label>
-              <input
-                type="number"
-                step="1"
-                value={formData.supply_amount}
-                onChange={e => handleChange("supply_amount", e.target.value)}
-                placeholder="0"
-              />
-            </div>
-          </div>
-
-          <div className="form-section-label">배액</div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>EC (dS/m)</label>
-              <input
-                type="number"
-                step="0.1"
-                value={formData.drain_ec}
-                onChange={e => handleChange("drain_ec", e.target.value)}
-                placeholder="3.0"
-              />
-            </div>
-            <div className="form-group">
-              <label>pH</label>
-              <input
-                type="number"
-                step="0.1"
-                value={formData.drain_ph}
-                onChange={e => handleChange("drain_ph", e.target.value)}
-                placeholder="6.0"
-              />
-            </div>
-            <div className="form-group">
-              <label>배액량 (L)</label>
-              <input
-                type="number"
-                step="1"
-                value={formData.drain_amount}
-                onChange={e => handleChange("drain_amount", e.target.value)}
-                placeholder="0"
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>메모</label>
-            <textarea
-              value={formData.memo}
-              onChange={e => handleChange("memo", e.target.value)}
-              placeholder="특이사항"
-              rows={2}
-            />
-          </div>
-
-          <div className="modal-actions">
-            <button type="button" className="btn-cancel" onClick={onClose}>
-              취소
-            </button>
-            <button type="submit" className="btn-save">
-              {record ? "수정" : "추가"}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }
